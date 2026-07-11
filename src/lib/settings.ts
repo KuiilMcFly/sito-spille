@@ -47,7 +47,10 @@ export async function getPublicSettings() {
       settings[row.key] = row.value;
     });
 
-  return settings;
+    return settings;
+  } catch {
+    return {};
+  }
 }
 
 export async function getStoreBranding() {
@@ -62,7 +65,4 @@ export async function getStoreBranding() {
     name: nameSetting.text || "Valeria Senpai",
     tagline: taglineSetting.text || "Spille Custom",
   };
-} catch {
-    return {};
-  }
 }
