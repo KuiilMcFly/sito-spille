@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatPrice, getStorageUrl } from "@/lib/utils";
@@ -17,7 +16,6 @@ type ProductDetailProps = {
 };
 
 export function ProductDetailClient({ product, ordersOpen = true }: ProductDetailProps) {
-  const router = useRouter();
   const { addCatalogItem } = useCart();
   const [quantity, setQuantity] = useState(1);
 
@@ -30,7 +28,7 @@ export function ProductDetailClient({ product, ordersOpen = true }: ProductDetai
       return;
     }
 
-    addCatalogItem({
+    const saved = addCatalogItem({
       type: "catalog",
       productId: product.id,
       productName: product.name,
@@ -40,8 +38,13 @@ export function ProductDetailClient({ product, ordersOpen = true }: ProductDetai
       imageUrl,
     });
 
+    if (!saved) {
+      toast.error("Impossibile salvare nel carrello.");
+      return;
+    }
+
     toast.success("Aggiunto al carrello!");
-    router.push("/carrello");
+    window.location.href = "/carrello";
   }
 
   return (

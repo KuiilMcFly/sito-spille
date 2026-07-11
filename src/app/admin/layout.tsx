@@ -11,6 +11,8 @@ import {
   Layers,
   Tags,
   ImageIcon,
+  Home,
+  ExternalLink,
 } from "lucide-react";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { hasSupabaseAdminEnv } from "@/lib/supabase/admin";
@@ -80,7 +82,19 @@ export default async function AdminLayout({
               </Link>
             ))}
           </nav>
-          <form action="/admin/logout" method="POST" className="mt-8">
+          <div className="mt-6 border-t border-ink-700 pt-4">
+            <Link
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-brand-300 transition hover:bg-ink-700 hover:text-white"
+            >
+              <Home className="h-4 w-4" />
+              Vai al sito
+              <ExternalLink className="ml-auto h-3.5 w-3.5 opacity-60" />
+            </Link>
+          </div>
+          <form action="/admin/logout" method="POST" className="mt-4">
             <button
               type="submit"
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-red-400 transition hover:bg-ink-700"

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { getCustomPrice } from "@/lib/orders/pricing-client";
 import { prepareImageFromFile, waitForCanvasFrame } from "@/lib/images/prepare-upload-image";
 import { FINISH_EFFECTS, getFinishOverlayStyle } from "@/lib/customizer/finish-effects";
 import { useCart } from "@/lib/cart/cart-context";
+import { ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-messages";
 import type { CustomizationData, FinishEffect, Tables } from "@/types/database";
 import { Loader2, RotateCw, ShoppingCart, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import toast from "react-hot-toast";
@@ -29,13 +29,12 @@ const DEFAULT_CUSTOM: CustomizationData = {
   finishEffect: "glossy",
 };
 
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+function exportCanvasImage(canvas: HTMLCanvasElement): string {
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+  if (!dataUrl || dataUrl.length < 200) {
+    throw new Error("Errore generazione anteprima. Riprova a caricare l'immagine.");
+  }
+  return dataUrl;
 }
 
 export function PinCustomizer({
@@ -44,7 +43,6 @@ export function PinCustomizer({
   previewFillColor = "#ffe0ef",
   previewStrokeColor = "#f72585",
 }: PinCustomizerProps) {
-  const router = useRouter();
   const { addCustomItem } = useCart();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -143,7 +141,7 @@ export function PinCustomizer({
       toast.error("Ordini temporaneamente chiusi");
       return;
     }
-    if (!imageLoaded) {
+    if (!imageLoaded || !imageRef.current) {
       toast.error("Carica un'immagine per la tua spilla.");
       return;
     }
@@ -156,19 +154,14 @@ export function PinCustomizer({
     try {
       drawCanvas();
       await waitForCanvasFrame();
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       const canvas = canvasRef.current;
       if (!canvas) throw new Error("Anteprima non disponibile");
 
-      const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob((result) => resolve(result), "image/jpeg", 0.92);
-      });
+      const designBase64 = exportCanvasImage(canvas);
 
-      if (!blob) throw new Error("Errore generazione anteprima");
-
-      const designBase64 = await blobToBase64(blob);
-
-      addCustomItem({
+      const saved = addCustomItem({
         type: "custom",
         pinSizeId: selectedSizeId,
         pinSizeName: selectedSize.name,
@@ -179,8 +172,12 @@ export function PinCustomizer({
         label: "Spilla personalizzata " + selectedSize.name,
       });
 
+      if (!saved) {
+        throw new Error("Impossibile salvare nel carrello. Prova con un'immagine piu leggera.");
+      }
+
       toast.success("Aggiunta al carrello!");
-      router.push("/carrello");
+      window.location.href = "/carrello";
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Errore");
     } finally {
@@ -308,9 +305,21 @@ export function PinCustomizer({
           </div>
         </div>
 
+        {!ordersOpen && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            {ORDERS_CLOSED_MESSAGE}
+          </div>
+        )}
+
+        {sizes.length === 0 && (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            Nessuna taglia disponibile. Contatta il negozio.
+          </div>
+        )}
+
         <Button
           className="w-full"
-          disabled={!ordersOpen || !imageLoaded || adding}
+          disabled={!ordersOpen || !imageLoaded || adding || sizes.length === 0}
           onClick={handleAddToCart}
         >
           {adding ? (

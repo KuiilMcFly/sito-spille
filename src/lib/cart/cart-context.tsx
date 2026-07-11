@@ -8,17 +8,23 @@ import {
   useMemo,
   useState,
 } from "react";
-import { v4 as uuidv4 } from "uuid";
 import type { CartItem, CartItemCatalog, CartItemCustom } from "@/lib/cart/types";
 
 const STORAGE_KEY = "valeria_cart";
+
+function createCartItemId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return String(Date.now()) + "-" + Math.random().toString(36).slice(2);
+}
 
 type CartContextValue = {
   items: CartItem[];
   count: number;
   subtotal: number;
-  addCustomItem: (item: Omit<CartItemCustom, "id">) => void;
-  addCatalogItem: (item: Omit<CartItemCatalog, "id">) => void;
+  addCustomItem: (item: Omit<CartItemCustom, "id">) => boolean;
+  addCatalogItem: (item: Omit<CartItemCatalog, "id">) => boolean;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -38,7 +44,12 @@ function loadItems(): CartItem[] {
 }
 
 function saveItems(items: CartItem[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -55,23 +66,35 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, hydrated]);
 
   const addCustomItem = useCallback((item: Omit<CartItemCustom, "id">) => {
-    setItems((prev) => [...prev, { ...item, id: uuidv4() }]);
+    let saved = true;
+    setItems((prev) => {
+      const next = [...prev, { ...item, id: createCartItemId() }];
+      saved = saveItems(next);
+      return next;
+    });
+    return saved;
   }, []);
 
   const addCatalogItem = useCallback((item: Omit<CartItemCatalog, "id">) => {
+    let saved = true;
     setItems((prev) => {
+      let next: CartItem[];
       const existing = prev.find(
         (i) => i.type === "catalog" && i.productId === item.productId
       );
       if (existing && existing.type === "catalog") {
-        return prev.map((i) =>
+        next = prev.map((i) =>
           i.id === existing.id
             ? { ...i, quantity: i.quantity + item.quantity }
             : i
         );
+      } else {
+        next = [...prev, { ...item, id: createCartItemId() }];
       }
-      return [...prev, { ...item, id: uuidv4() }];
+      saved = saveItems(next);
+      return next;
     });
+    return saved;
   }, []);
 
   const removeItem = useCallback((id: string) => {
