@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
   const description = (formData.get("description") as string) || null;
   const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
   const isActive = formData.get("isActive") === "true";
+  const isFeatured = formData.get("isFeatured") === "true";
   const coverFile = formData.get("cover") as File | null;
   const backgroundFile = formData.get("background") as File | null;
 
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
       background_path: backgroundPath,
       sort_order: sortOrder,
       is_active: isActive,
+      is_featured: isFeatured,
     })
     .select()
     .single();

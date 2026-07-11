@@ -22,6 +22,7 @@ export function GroupForm({ group }: GroupFormProps) {
   const [description, setDescription] = useState(group?.description || "");
   const [sortOrder, setSortOrder] = useState(String(group?.sort_order || 0));
   const [isActive, setIsActive] = useState(group?.is_active ?? true);
+  const [isFeatured, setIsFeatured] = useState(group?.is_featured ?? false);
   const [cover, setCover] = useState<File | null>(null);
   const [background, setBackground] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ export function GroupForm({ group }: GroupFormProps) {
     formData.append("description", description);
     formData.append("sortOrder", sortOrder);
     formData.append("isActive", String(isActive));
+    formData.append("isFeatured", String(isFeatured));
     if (cover) formData.append("cover", cover);
     if (background) formData.append("background", background);
 
@@ -80,6 +82,10 @@ export function GroupForm({ group }: GroupFormProps) {
       <label className="flex items-center gap-2 text-sm text-ink-200">
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attivo
+      </label>
+      <label className="flex items-center gap-2 text-sm text-ink-200">
+        <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
+        In evidenza in home
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={loading}>

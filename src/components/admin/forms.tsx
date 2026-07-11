@@ -24,6 +24,7 @@ export function SizeForm({ size }: SizeFormProps) {
   const [description, setDescription] = useState(size?.description || "");
   const [sortOrder, setSortOrder] = useState(String(size?.sort_order || 0));
   const [isActive, setIsActive] = useState(size?.is_active ?? true);
+  const [isFeatured, setIsFeatured] = useState(size?.is_featured ?? false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -38,6 +39,7 @@ export function SizeForm({ size }: SizeFormProps) {
       description: description || null,
       sort_order: parseInt(sortOrder) || 0,
       is_active: isActive,
+      is_featured: isFeatured,
     };
 
     const url = size ? "/api/admin/sizes/" + size.id : "/api/admin/sizes";
@@ -71,6 +73,10 @@ export function SizeForm({ size }: SizeFormProps) {
       <label className="flex items-center gap-2 text-sm text-ink-200">
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attiva
+      </label>
+      <label className="flex items-center gap-2 text-sm text-ink-200">
+        <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
+        In evidenza in home
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={loading}>
@@ -211,7 +217,7 @@ export function ProductForm({
       />
       <label className="flex items-center gap-2 text-sm text-ink-200">
         <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
-        In evidenza
+        In evidenza in home
       </label>
       <label className="flex items-center gap-2 text-sm text-ink-200">
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />

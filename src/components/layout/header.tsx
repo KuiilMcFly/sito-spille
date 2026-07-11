@@ -8,6 +8,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/prodotti", label: "Prodotti" },
   { href: "/gruppi", label: "Gruppi" },
+  { href: "/tipologie", label: "Tipologie" },
   { href: "/crea", label: "Crea la tua spilla" },
   { href: "/contatti", label: "Contatti" },
 ];

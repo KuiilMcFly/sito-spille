@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { ProductGrid } from "@/components/catalog/product-grid";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
+import { loadFilterOptions } from "@/lib/catalog/filter-entities";
 import type { ProductWithImages } from "@/types/database";
 
 export const metadata = { title: "Catalogo prodotti" };
@@ -13,19 +14,16 @@ type Props = {
 export default async function ProductsPage({ searchParams }: Props) {
   const params = await searchParams;
   let products: ProductWithImages[] = [];
-  let groups: { id: string; name: string; slug: string }[] = [];
-  let typologies: { id: string; name: string; slug: string }[] = [];
+  let groups: Awaited<ReturnType<typeof loadFilterOptions>>["groups"] = [];
+  let typologies: Awaited<ReturnType<typeof loadFilterOptions>>["typologies"] = [];
 
   const supabase = await createClientIfConfigured();
 
   if (supabase) {
     try {
-      const [{ data: groupsData }, { data: typologiesData }] = await Promise.all([
-        supabase.from("product_groups").select("id, name, slug").eq("is_active", true).order("sort_order"),
-        supabase.from("product_typologies").select("id, name, slug").eq("is_active", true).order("sort_order"),
-      ]);
-      groups = groupsData || [];
-      typologies = typologiesData || [];
+      const options = await loadFilterOptions(supabase);
+      groups = options.groups;
+      typologies = options.typologies;
 
       let groupId: string | null = null;
       let typologyId: string | null = null;
@@ -66,7 +64,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       </p>
       <div className="mt-10 grid gap-8 lg:grid-cols-[240px_1fr]">
         <Suspense>
-          <CatalogFilters groups={groups as never[]} typologies={typologies as never[]} />
+          <CatalogFilters basePath="/prodotti" groups={groups} typologies={typologies} />
         </Suspense>
         <div>
           {products.length > 0 ? (

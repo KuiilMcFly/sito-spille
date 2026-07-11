@@ -1,37 +1,49 @@
 import Link from "next/link";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { getPublicSettings } from "@/lib/settings";
-import { ProductGrid } from "@/components/catalog/product-grid";
 import { HeroCarousel } from "@/components/home/hero-carousel";
+import { FeaturedGrid } from "@/components/home/featured-grid";
+import { GroupGrid } from "@/components/catalog/group-grid";
+import { TypologyGrid } from "@/components/catalog/typology-grid";
+import { loadFeaturedItems } from "@/lib/featured/load-featured-items";
+import {
+  loadHomeGroupsPreview,
+  loadHomeTypologiesPreview,
+} from "@/lib/catalog/filter-entities";
 import { Palette, Truck, Shield } from "lucide-react";
-import type { HeroSlideWithProduct, ProductWithImages } from "@/types/database";
+import type { HeroSlideWithProduct } from "@/types/database";
+
+const HOME_PREVIEW_LIMIT = 6;
 
 export default async function HomePage() {
   const settings = await getPublicSettings();
-  let products: ProductWithImages[] = [];
+  let featuredItems: Awaited<ReturnType<typeof loadFeaturedItems>> = [];
   let slides: HeroSlideWithProduct[] = [];
+  let groupsPreview: Awaited<ReturnType<typeof loadHomeGroupsPreview>> = [];
+  let typologiesPreview: Awaited<ReturnType<typeof loadHomeTypologiesPreview>> = [];
 
   const supabase = await createClientIfConfigured();
   if (supabase) {
     try {
-      const [productsRes, slidesRes] = await Promise.all([
-        supabase
-          .from("products")
-          .select("*, product_images(*), pin_sizes(*)")
-          .eq("is_active", true)
-          .eq("is_featured", true)
-          .order("sort_order"),
+      const [featuredRes, slidesRes, groupsRes, typologiesRes] = await Promise.all([
+        loadFeaturedItems(supabase),
         supabase
           .from("hero_slides")
           .select("*, products(*, product_images(*), pin_sizes(*))")
           .eq("is_active", true)
           .order("sort_order"),
+        loadHomeGroupsPreview(supabase, HOME_PREVIEW_LIMIT),
+        loadHomeTypologiesPreview(supabase, HOME_PREVIEW_LIMIT),
       ]);
-      products = (productsRes.data as unknown as ProductWithImages[]) || [];
+      featuredItems = featuredRes;
       slides = (slidesRes.data as unknown as HeroSlideWithProduct[]) || [];
+      groupsPreview = groupsRes;
+      typologiesPreview = typologiesRes;
     } catch {
-      products = [];
+      featuredItems = [];
       slides = [];
+      groupsPreview = [];
+      typologiesPreview = [];
     }
   }
 
@@ -52,15 +64,57 @@ export default async function HomePage() {
 
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="font-display text-3xl font-bold text-ink-900">
-          Prodotti in evidenza
+          In evidenza
         </h2>
         <p className="mt-2 text-ink-700">
-          Scopri le spille pronte da ordinare o lasciati ispirare.
+          Prodotti, gruppi, tipologie e taglie selezionati per te.
         </p>
         <div className="mt-8">
-          <ProductGrid products={products} />
+          <FeaturedGrid items={featuredItems} />
         </div>
       </section>
+
+      {groupsPreview.length > 0 && (
+        <section className="bg-white px-4 py-16">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 className="font-display text-3xl font-bold text-ink-900">Gruppi</h2>
+                <p className="mt-2 text-ink-700">Collezioni tematiche da esplorare.</p>
+              </div>
+              <Link
+                href="/gruppi"
+                className="text-sm font-semibold text-brand-600 hover:text-brand-700"
+              >
+                Vedi tutti i gruppi
+              </Link>
+            </div>
+            <div className="mt-8">
+              <GroupGrid groups={groupsPreview} />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {typologiesPreview.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-16">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="font-display text-3xl font-bold text-ink-900">Tipologie</h2>
+              <p className="mt-2 text-ink-700">Sfoglia per anime, serie, film e altro.</p>
+            </div>
+            <Link
+              href="/tipologie"
+              className="text-sm font-semibold text-brand-600 hover:text-brand-700"
+            >
+              Vedi tutte le tipologie
+            </Link>
+          </div>
+          <div className="mt-8">
+            <TypologyGrid typologies={typologiesPreview} />
+          </div>
+        </section>
+      )}
 
       <section className="bg-white px-4 py-16">
         <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">

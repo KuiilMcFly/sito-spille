@@ -22,6 +22,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     description: (formData.get("description") as string) || null,
     sort_order: parseInt(formData.get("sortOrder") as string) || 0,
     is_active: formData.get("isActive") === "true",
+    is_featured: formData.get("isFeatured") === "true",
     updated_at: new Date().toISOString(),
   };
 

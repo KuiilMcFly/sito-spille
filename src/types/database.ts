@@ -310,6 +310,7 @@ export type Database = {
           diameter_mm: number;
           id: string;
           is_active: boolean;
+          is_featured: boolean;
           name: string;
           sort_order: number;
           updated_at: string;
@@ -322,6 +323,7 @@ export type Database = {
           diameter_mm: number;
           id?: string;
           is_active?: boolean;
+          is_featured?: boolean;
           name: string;
           sort_order?: number;
           updated_at?: string;
@@ -334,6 +336,7 @@ export type Database = {
           diameter_mm?: number;
           id?: string;
           is_active?: boolean;
+          is_featured?: boolean;
           name?: string;
           sort_order?: number;
           updated_at?: string;
@@ -464,6 +467,7 @@ export type Database = {
           description: string | null;
           id: string;
           is_active: boolean;
+          is_featured: boolean;
           name: string;
           slug: string;
           sort_order: number;
@@ -476,6 +480,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           is_active?: boolean;
+          is_featured?: boolean;
           name: string;
           slug: string;
           sort_order?: number;
@@ -488,6 +493,7 @@ export type Database = {
           description?: string | null;
           id?: string;
           is_active?: boolean;
+          is_featured?: boolean;
           name?: string;
           slug?: string;
           sort_order?: number;
@@ -500,6 +506,7 @@ export type Database = {
           created_at: string;
           id: string;
           is_active: boolean;
+          is_featured: boolean;
           name: string;
           slug: string;
           sort_order: number;
@@ -509,6 +516,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_active?: boolean;
+          is_featured?: boolean;
           name: string;
           slug: string;
           sort_order?: number;
@@ -518,6 +526,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_active?: boolean;
+          is_featured?: boolean;
           name?: string;
           slug?: string;
           sort_order?: number;

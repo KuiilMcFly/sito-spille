@@ -4,14 +4,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import type { Tables } from "@/types/database";
 
-type CatalogFiltersProps = {
-  groups: Tables<"product_groups">[];
-  typologies: Tables<"product_typologies">[];
+type FilterOption = {
+  id: string;
+  name: string;
+  slug: string;
 };
 
-export function CatalogFilters({ groups, typologies }: CatalogFiltersProps) {
+type CatalogFiltersProps = {
+  basePath: string;
+  groups: FilterOption[];
+  typologies: FilterOption[];
+};
+
+export function CatalogFilters({ basePath, groups, typologies }: CatalogFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -22,7 +28,8 @@ export function CatalogFilters({ groups, typologies }: CatalogFiltersProps) {
       if (value) params.set(key, value);
       else params.delete(key);
     });
-    router.push("/prodotti?" + params.toString());
+    const qs = params.toString();
+    router.push(qs ? basePath + "?" + qs : basePath);
   }
 
   function handleSearch(e: React.FormEvent) {

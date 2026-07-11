@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS product_groups (
   background_path text,
   sort_order int NOT NULL DEFAULT 0,
   is_active boolean NOT NULL DEFAULT true,
+  is_featured boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );

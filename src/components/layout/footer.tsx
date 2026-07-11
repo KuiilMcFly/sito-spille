@@ -56,6 +56,11 @@ export async function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/tipologie" className="hover:text-brand-600">
+                Tipologie
+              </Link>
+            </li>
+            <li>
               <Link href="/prodotti" className="hover:text-brand-600">
                 Catalogo
               </Link>
