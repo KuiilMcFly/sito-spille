@@ -1,39 +1,63 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
 import type { Tables } from "@/types/database";
 
 export async function getFreeShippingThreshold() {
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "free_shipping_threshold")
-    .single();
+  if (!hasSupabaseAdminEnv()) {
+    return 35;
+  }
 
-  const value = data?.value as { amount?: number } | null;
-  return value?.amount ?? 35;
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "free_shipping_threshold")
+      .single();
+
+    const value = data?.value as { amount?: number } | null;
+    return value?.amount ?? 35;
+  } catch {
+    return 35;
+  }
 }
 
 export async function getShippingMethods() {
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("shipping_methods")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order");
+  if (!hasSupabaseAdminEnv()) {
+    return [] as Tables<"shipping_methods">[];
+  }
 
-  return (data || []) as Tables<"shipping_methods">[];
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("shipping_methods")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order");
+
+    return (data || []) as Tables<"shipping_methods">[];
+  } catch {
+    return [] as Tables<"shipping_methods">[];
+  }
 }
 
 export async function getShippingMethodById(id: string) {
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("shipping_methods")
-    .select("*")
-    .eq("id", id)
-    .eq("is_active", true)
-    .single();
+  if (!hasSupabaseAdminEnv()) {
+    return null;
+  }
 
-  return data as Tables<"shipping_methods"> | null;
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("shipping_methods")
+      .select("*")
+      .eq("id", id)
+      .eq("is_active", true)
+      .single();
+
+    return data as Tables<"shipping_methods"> | null;
+  } catch {
+    return null;
+  }
 }
 
 export async function calculateShippingCost(

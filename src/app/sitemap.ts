@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl =
@@ -24,6 +24,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
+    if (!hasSupabaseAdminEnv()) {
+      return staticEntries;
+    }
+
     const supabase = createAdminClient();
     const { data: products } = await supabase
       .from("products")
