@@ -53,16 +53,20 @@ export async function getPublicSettings() {
   }
 }
 
+export const DEFAULT_STORE_NAME = "Valeria Senpai";
+export const DEFAULT_STORE_TAGLINE = "Spille Custom";
+
 export async function getStoreBranding() {
   const nameSetting = await getSiteSetting<{ text?: string }>("store_name", {
-    text: "Valeria Senpai",
+    text: DEFAULT_STORE_NAME,
   });
   const taglineSetting = await getSiteSetting<{ text?: string }>("store_tagline", {
-    text: "Spille Custom",
+    text: DEFAULT_STORE_TAGLINE,
   });
 
-  return {
-    name: nameSetting.text || "Valeria Senpai",
-    tagline: taglineSetting.text || "Spille Custom",
-  };
+  const name = nameSetting.text || DEFAULT_STORE_NAME;
+  const tagline = taglineSetting.text || DEFAULT_STORE_TAGLINE;
+  const fullTitle = (name + " " + tagline).trim();
+
+  return { name, tagline, fullTitle };
 }

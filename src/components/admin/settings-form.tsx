@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DEFAULT_STORE_NAME, DEFAULT_STORE_TAGLINE } from "@/lib/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
@@ -17,8 +18,8 @@ export function SettingsForm({ initial }: SettingsFormProps) {
   const [phone, setPhone] = useState(String(initial.store_phone?.phone || ""));
   const [heroTitle, setHeroTitle] = useState(String(initial.hero_title?.text || ""));
   const [heroSubtitle, setHeroSubtitle] = useState(String(initial.hero_subtitle?.text || ""));
-  const [storeName, setStoreName] = useState(String(initial.store_name?.text || "Valeria Senpai"));
-  const [storeTagline, setStoreTagline] = useState(String(initial.store_tagline?.text || "Spille Custom"));
+  const [storeName, setStoreName] = useState(String(initial.store_name?.text || DEFAULT_STORE_NAME));
+  const [storeTagline, setStoreTagline] = useState(String(initial.store_tagline?.text || DEFAULT_STORE_TAGLINE));
   const [loading, setLoading] = useState(false);
 
   async function saveSetting(key: string, value: Record<string, unknown>) {

@@ -3,6 +3,7 @@ import { SettingsForm } from "@/components/admin/settings-form";
 import { OrdersToggle } from "@/components/admin/orders-toggle";
 import { ThemeSettingsForm } from "@/components/admin/theme-settings-form";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
+import { DEFAULT_STORE_NAME, DEFAULT_STORE_TAGLINE } from "@/lib/settings";
 
 export default async function AdminSettingsPage() {
   const supabase = createAdminClientIfConfigured();
@@ -38,6 +39,11 @@ export default async function AdminSettingsPage() {
         <ThemeSettingsForm
           initialPrimary={String(initial.theme_colors?.primary || "")}
           initialAccent={String(initial.theme_colors?.accent || "")}
+          previewTitle={
+            String(initial.store_name?.text || DEFAULT_STORE_NAME) +
+            " " +
+            String(initial.store_tagline?.text || DEFAULT_STORE_TAGLINE)
+          }
         />
         <SettingsForm initial={initial} />
       </div>

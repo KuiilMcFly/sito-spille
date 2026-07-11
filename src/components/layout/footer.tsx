@@ -1,12 +1,15 @@
 import Link from "next/link";
+import { getStoreBranding } from "@/lib/settings";
 
-export function Footer() {
+export async function Footer() {
+  const branding = await getStoreBranding();
+
   return (
     <footer className="mt-auto border-t border-brand-100 bg-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-3">
         <div>
           <p className="font-display text-xl font-bold text-ink-900">
-            Valeria Senpai Spille Custom
+            {branding.fullTitle}
           </p>
           <p className="mt-2 text-sm text-ink-700">
             Spille rotonde personalizzate per zaini, borse e collezioni anime.
@@ -54,7 +57,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-brand-100 py-4 text-center text-xs text-ink-400">
-        © {new Date().getFullYear()} Valeria Senpai Spille Custom. Tutti i diritti riservati.
+        © {new Date().getFullYear()} {branding.fullTitle}. Tutti i diritti riservati.
       </div>
     </footer>
   );

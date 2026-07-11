@@ -1,3 +1,5 @@
+import { getStoreBranding } from "@/lib/settings";
+
 export async function sendOrderConfirmationEmail(params: {
   to: string;
   orderNumber: string;
@@ -6,6 +8,7 @@ export async function sendOrderConfirmationEmail(params: {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return;
 
+  const branding = await getStoreBranding();
   const totalFormatted = params.total.toFixed(2) + " EUR";
 
   await fetch("https://api.resend.com/emails", {
@@ -15,7 +18,7 @@ export async function sendOrderConfirmationEmail(params: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Valeria Senpai Spille <noreply@valeriasenpai.it>",
+      from: branding.fullTitle + " <noreply@valeriasenpai.it>",
       to: params.to,
       subject: "Conferma ordine " + params.orderNumber,
       html:
@@ -40,6 +43,8 @@ export async function sendAdminNewOrderEmail(params: {
   const adminEmail = process.env.STORE_NOTIFICATION_EMAIL;
   if (!apiKey || !adminEmail) return;
 
+  const branding = await getStoreBranding();
+
   await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -47,7 +52,7 @@ export async function sendAdminNewOrderEmail(params: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Valeria Senpai Spille <noreply@valeriasenpai.it>",
+      from: branding.fullTitle + " <noreply@valeriasenpai.it>",
       to: adminEmail,
       subject: "Nuovo ordine " + params.orderNumber,
       html:

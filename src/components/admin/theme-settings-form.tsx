@@ -10,11 +10,13 @@ import { DEFAULT_THEME } from "@/lib/theme/defaults";
 type ThemeSettingsFormProps = {
   initialPrimary?: string;
   initialAccent?: string;
+  previewTitle?: string;
 };
 
 export function ThemeSettingsForm({
   initialPrimary,
   initialAccent,
+  previewTitle,
 }: ThemeSettingsFormProps) {
   const [primary, setPrimary] = useState(initialPrimary || DEFAULT_THEME.primary);
   const [accent, setAccent] = useState(initialAccent || DEFAULT_THEME.accent);
@@ -135,7 +137,7 @@ export function ThemeSettingsForm({
         <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: preview.brand600 }}>
           Anteprima home
         </p>
-        <h3 className="mt-2 text-2xl font-bold text-ink-900">Valeria Senpai Spille</h3>
+        <h3 className="mt-2 text-2xl font-bold text-ink-900">{previewTitle || "Nome sito"}</h3>
         <p className="mt-2 text-sm text-ink-700">Esempio di come apparira la palette sul sito.</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <span

@@ -1,4 +1,5 @@
 import { getPayPalClientId } from "@/lib/paypal/config";
+import { getStoreBranding } from "@/lib/settings";
 
 const PAYPAL_API_BASE =
   process.env.PAYPAL_MODE === "live"
@@ -38,6 +39,7 @@ export async function createPayPalOrder(
   orderNumber: string
 ) {
   const token = await getAccessToken();
+  const branding = await getStoreBranding();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   const response = await fetch(PAYPAL_API_BASE + "/v2/checkout/orders", {
@@ -55,11 +57,11 @@ export async function createPayPalOrder(
             currency_code: currency,
             value: amount.toFixed(2),
           },
-          description: "Ordine " + orderNumber + " - Valeria Senpai Spille",
+          description: "Ordine " + orderNumber + " - " + branding.fullTitle,
         },
       ],
       application_context: {
-        brand_name: "Valeria Senpai Spille Custom",
+        brand_name: branding.fullTitle,
         landing_page: "NO_PREFERENCE",
         user_action: "PAY_NOW",
         return_url: siteUrl + "/pagamento/esito?status=success",

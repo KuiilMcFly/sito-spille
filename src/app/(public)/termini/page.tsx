@@ -1,6 +1,10 @@
+import { getStoreBranding } from "@/lib/settings";
+
 export const metadata = { title: "Termini e condizioni" };
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const branding = await getStoreBranding();
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="font-display text-4xl font-bold text-ink-900">
@@ -8,7 +12,7 @@ export default function TermsPage() {
       </h1>
       <div className="mt-6 space-y-4 text-ink-700">
         <p>
-          Acquistando su Valeria Senpai Spille Custom accetti i seguenti termini.
+          Acquistando su {branding.fullTitle} accetti i seguenti termini.
         </p>
         <h2 className="text-xl font-bold text-ink-900">Ordini e pagamenti</h2>
         <p>

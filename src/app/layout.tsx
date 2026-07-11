@@ -3,6 +3,7 @@ import { Outfit, Playfair_Display } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { CookieBanner } from "@/components/layout/cookie-banner";
 import { ThemeVariables } from "@/components/theme/theme-variables";
+import { getStoreBranding } from "@/lib/settings";
 import "./globals.css";
 
 const bodyFont = Outfit({
@@ -15,19 +16,23 @@ const displayFont = Playfair_Display({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Valeria Senpai Spille Custom",
-    template: "%s | Valeria Senpai Spille Custom",
-  },
-  description:
-    "Spille rotonde personalizzate per zaini. Crea la tua spilla con foto o disegno e ordina online.",
-  openGraph: {
-    siteName: "Valeria Senpai Spille Custom",
-    locale: "it_IT",
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getStoreBranding();
+
+  return {
+    title: {
+      default: branding.fullTitle,
+      template: "%s | " + branding.fullTitle,
+    },
+    description:
+      "Spille rotonde personalizzate per zaini. Crea la tua spilla con foto o disegno e ordina online.",
+    openGraph: {
+      siteName: branding.fullTitle,
+      locale: "it_IT",
+      type: "website",
+    },
+  };
+}
 
 export default function RootLayout({
   children,
