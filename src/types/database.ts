@@ -406,6 +406,122 @@ export type Database = {
         };
         Relationships: [];
       };
+      hero_slides: {
+        Row: {
+          background_path: string;
+          created_at: string;
+          cta_label: string | null;
+          id: string;
+          is_active: boolean;
+          product_id: string;
+          sort_order: number;
+          subtitle_override: string | null;
+          title_override: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          background_path: string;
+          created_at?: string;
+          cta_label?: string | null;
+          id?: string;
+          is_active?: boolean;
+          product_id: string;
+          sort_order?: number;
+          subtitle_override?: string | null;
+          title_override?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          background_path?: string;
+          created_at?: string;
+          cta_label?: string | null;
+          id?: string;
+          is_active?: boolean;
+          product_id?: string;
+          sort_order?: number;
+          subtitle_override?: string | null;
+          title_override?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "hero_slides_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      product_groups: {
+        Row: {
+          background_path: string | null;
+          cover_path: string | null;
+          created_at: string;
+          description: string | null;
+          id: string;
+          is_active: boolean;
+          name: string;
+          slug: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          background_path?: string | null;
+          cover_path?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          slug: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: {
+          background_path?: string | null;
+          cover_path?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          slug?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      product_typologies: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          slug: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          slug: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          slug?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       product_images: {
         Row: {
           alt_text: string | null;
@@ -446,6 +562,7 @@ export type Database = {
       };
       products: {
         Row: {
+          author: string | null;
           created_at: string;
           description: string | null;
           id: string;
@@ -454,6 +571,8 @@ export type Database = {
           name: string;
           pin_size_id: string;
           price: number;
+          product_group_id: string | null;
+          product_typology_id: string | null;
           seo_description: string | null;
           seo_title: string | null;
           slug: string;
@@ -462,6 +581,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          author?: string | null;
           created_at?: string;
           description?: string | null;
           id?: string;
@@ -470,6 +590,8 @@ export type Database = {
           name: string;
           pin_size_id: string;
           price: number;
+          product_group_id?: string | null;
+          product_typology_id?: string | null;
           seo_description?: string | null;
           seo_title?: string | null;
           slug: string;
@@ -478,6 +600,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          author?: string | null;
           created_at?: string;
           description?: string | null;
           id?: string;
@@ -486,6 +609,8 @@ export type Database = {
           name?: string;
           pin_size_id?: string;
           price?: number;
+          product_group_id?: string | null;
+          product_typology_id?: string | null;
           seo_description?: string | null;
           seo_title?: string | null;
           slug?: string;
@@ -499,6 +624,20 @@ export type Database = {
             columns: ["pin_size_id"];
             isOneToOne: false;
             referencedRelation: "pin_sizes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "products_product_group_id_fkey";
+            columns: ["product_group_id"];
+            isOneToOne: false;
+            referencedRelation: "product_groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "products_product_typology_id_fkey";
+            columns: ["product_typology_id"];
+            isOneToOne: false;
+            referencedRelation: "product_typologies";
             referencedColumns: ["id"];
           },
         ];
@@ -536,7 +675,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded";
-      order_type: "catalog" | "custom";
+      order_type: "catalog" | "custom" | "mixed";
       payment_status:
         | "created"
         | "approved"
@@ -553,17 +692,43 @@ export type Tables<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
 export type TablesInsert<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Insert"];
+export type TablesUpdate<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"];
 export type Enums<T extends keyof Database["public"]["Enums"]> =
   Database["public"]["Enums"][T];
 
 export type ProductWithImages = Tables<"products"> & {
   product_images: Tables<"product_images">[];
   pin_sizes: Tables<"pin_sizes"> | null;
+  product_groups?: Tables<"product_groups"> | null;
+  product_typologies?: Tables<"product_typologies"> | null;
 };
+
+export type HeroSlideWithProduct = Tables<"hero_slides"> & {
+  products: ProductWithImages | null;
+};
+
+export type FinishEffect =
+  | "glossy"
+  | "matte"
+  | "holographic"
+  | "glitter"
+  | "rainbow"
+  | "soft_touch"
+  | "epoxy_dome";
 
 export type CustomizationData = {
   scale: number;
   offsetX: number;
   offsetY: number;
   rotation: number;
+  finishEffect?: FinishEffect;
+};
+
+export type SocialLinks = {
+  instagram?: string;
+  tiktok?: string;
+  facebook?: string;
+  youtube?: string;
+  threads?: string;
 };

@@ -20,8 +20,11 @@ export async function POST(request: NextRequest) {
   const name = formData.get("name") as string;
   const slug = formData.get("slug") as string;
   const description = formData.get("description") as string;
+  const author = (formData.get("author") as string) || null;
   const price = parseFloat(formData.get("price") as string);
   const pinSizeId = formData.get("pinSizeId") as string;
+  const groupId = (formData.get("productGroupId") as string) || null;
+  const typologyId = (formData.get("productTypologyId") as string) || null;
   const stockRaw = formData.get("stockQuantity") as string;
   const isFeatured = formData.get("isFeatured") === "true";
   const isActive = formData.get("isActive") === "true";
@@ -35,8 +38,11 @@ export async function POST(request: NextRequest) {
       name,
       slug,
       description: description || null,
+      author,
       price,
       pin_size_id: pinSizeId,
+      product_group_id: groupId || null,
+      product_typology_id: typologyId || null,
       stock_quantity: stockRaw ? parseInt(stockRaw) : null,
       is_featured: isFeatured,
       is_active: isActive,

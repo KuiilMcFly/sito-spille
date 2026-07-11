@@ -27,6 +27,10 @@ export function getStorageUrl(path: string, bucket = "product-images") {
   return base + "/storage/v1/object/public/" + bucket + "/" + path;
 }
 
+export function getSiteAssetUrl(path: string) {
+  return getStorageUrl(path, "site-assets");
+}
+
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   pending_payment: "In attesa pagamento",
   paid: "Pagato",

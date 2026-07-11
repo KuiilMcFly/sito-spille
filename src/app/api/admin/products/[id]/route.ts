@@ -23,6 +23,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   const supabase = createAdminClient();
 
   const stockRaw = formData.get("stockQuantity") as string;
+  const groupId = (formData.get("productGroupId") as string) || null;
+  const typologyId = (formData.get("productTypologyId") as string) || null;
 
   const { error } = await supabase
     .from("products")
@@ -30,8 +32,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       name: formData.get("name") as string,
       slug: formData.get("slug") as string,
       description: (formData.get("description") as string) || null,
+      author: (formData.get("author") as string) || null,
       price: parseFloat(formData.get("price") as string),
       pin_size_id: formData.get("pinSizeId") as string,
+      product_group_id: groupId || null,
+      product_typology_id: typologyId || null,
       stock_quantity: stockRaw ? parseInt(stockRaw) : null,
       is_featured: formData.get("isFeatured") === "true",
       is_active: formData.get("isActive") === "true",

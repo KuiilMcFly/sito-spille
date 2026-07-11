@@ -8,6 +8,9 @@ import {
   Settings,
   LogOut,
   Truck,
+  Layers,
+  Tags,
+  ImageIcon,
 } from "lucide-react";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { hasSupabaseAdminEnv } from "@/lib/supabase/admin";
@@ -22,6 +25,9 @@ export const dynamic = "force-dynamic";
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/prodotti", label: "Prodotti", icon: Package },
+  { href: "/admin/gruppi", label: "Gruppi", icon: Layers },
+  { href: "/admin/tipologie", label: "Tipologie", icon: Tags },
+  { href: "/admin/hero", label: "Hero", icon: ImageIcon },
   { href: "/admin/taglie", label: "Taglie", icon: Ruler },
   { href: "/admin/spedizioni", label: "Spedizioni", icon: Truck },
   { href: "/admin/ordini", label: "Ordini", icon: ShoppingCart },

@@ -3,6 +3,8 @@ import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice, ORDER_STATUS_LABELS } from "@/lib/utils";
 import { Badge, getOrderStatusVariant } from "@/components/ui/badge";
 import { OrderActions } from "@/components/admin/order-actions";
+import { getFinishEffectLabel } from "@/lib/customizer/finish-effects";
+import type { CustomizationData } from "@/types/database";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -24,15 +26,21 @@ export default async function AdminOrderDetailPage({ params }: Props) {
     supabase.from("order_status_history").select("*").eq("order_id", id).order("created_at"),
   ]);
 
-  const customItem = orderItems?.find((i) => i.is_custom);
-  const designPath = customItem?.custom_design_path;
+  const customItems = orderItems?.filter((i) => i.is_custom) || [];
 
-  let designUrl: string | null = null;
-  if (designPath) {
+  const customDesigns: { url: string; effect: string }[] = [];
+  for (const item of customItems) {
+    if (!item.custom_design_path) continue;
     const { data: signed } = await supabase.storage
       .from("custom-designs")
-      .createSignedUrl(designPath, 3600);
-    designUrl = signed?.signedUrl || null;
+      .createSignedUrl(item.custom_design_path, 3600);
+    if (signed?.signedUrl) {
+      const data = item.customization_data as CustomizationData | null;
+      customDesigns.push({
+        url: signed.signedUrl,
+        effect: getFinishEffectLabel(data?.finishEffect),
+      });
+    }
   }
 
   return (
@@ -75,15 +83,25 @@ export default async function AdminOrderDetailPage({ params }: Props) {
           <div className="rounded-xl border border-ink-700 bg-ink-800 p-6">
             <h3 className="font-semibold text-white">Righe ordine</h3>
             <ul className="mt-4 space-y-3">
-              {orderItems?.map((item) => (
-                <li key={item.id} className="flex justify-between text-sm text-ink-200">
-                  <span>
-                    {item.is_custom ? "Spilla custom" : (item.products as { name: string } | null)?.name}{" "}
-                    x{item.quantity} ({(item.pin_sizes as { name: string } | null)?.name})
-                  </span>
-                  <span>{formatPrice(item.line_total)}</span>
-                </li>
-              ))}
+              {orderItems?.map((item) => {
+                const customData = item.customization_data as CustomizationData | null;
+                return (
+                  <li key={item.id} className="text-sm text-ink-200">
+                    <div className="flex justify-between">
+                      <span>
+                        {item.is_custom ? "Spilla custom" : (item.products as { name: string } | null)?.name}{" "}
+                        x{item.quantity} ({(item.pin_sizes as { name: string } | null)?.name})
+                      </span>
+                      <span>{formatPrice(item.line_total)}</span>
+                    </div>
+                    {item.is_custom && customData?.finishEffect && (
+                      <p className="text-xs text-ink-400">
+                        Effetto: {getFinishEffectLabel(customData.finishEffect)}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
             <div className="mt-4 border-t border-ink-700 pt-4">
               <div className="flex justify-between text-sm text-ink-400">
@@ -121,14 +139,21 @@ export default async function AdminOrderDetailPage({ params }: Props) {
         </div>
 
         <div className="space-y-6">
-          {designUrl && (
+          {customDesigns.length > 0 && (
             <div className="rounded-xl border border-ink-700 bg-ink-800 p-6">
               <h3 className="font-semibold text-white">Design custom</h3>
-              <img
-                src={designUrl}
-                alt="Design custom"
-                className="mt-4 mx-auto h-64 w-64 rounded-full object-cover pin-shadow"
-              />
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                {customDesigns.map((design, idx) => (
+                  <div key={idx} className="text-center">
+                    <img
+                      src={design.url}
+                      alt="Design custom"
+                      className="mx-auto h-40 w-40 rounded-full object-cover pin-shadow"
+                    />
+                    <p className="mt-2 text-xs text-ink-400">{design.effect}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

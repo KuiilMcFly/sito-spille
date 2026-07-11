@@ -1,5 +1,5 @@
 import { createAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
-import type { Json } from "@/types/database";
+import type { Json, SocialLinks } from "@/types/database";
 
 export async function getSiteSetting<T>(key: string, fallback: T): Promise<T> {
   if (!hasSupabaseAdminEnv()) {
@@ -35,6 +35,7 @@ export async function getPublicSettings() {
       "store_phone",
       "hero_title",
       "hero_subtitle",
+      "social_links",
     ];
 
     const { data } = await supabase
@@ -69,4 +70,20 @@ export async function getStoreBranding() {
   const fullTitle = (name + " " + tagline).trim();
 
   return { name, tagline, fullTitle };
+}
+
+export async function getSocialLinks(): Promise<SocialLinks> {
+  return getSiteSetting<SocialLinks>("social_links", {});
+}
+
+export async function getOrdersClosedMessage() {
+  const social = await getSocialLinks();
+  let msg =
+    "Al momento gli ordini sono temporaneamente chiusi. Riprova piu tardi";
+  if (social.instagram) {
+    msg += " oppure contattaci su Instagram: " + social.instagram;
+  } else {
+    msg += " oppure contattaci su Instagram!";
+  }
+  return msg;
 }

@@ -20,6 +20,11 @@ export function SettingsForm({ initial }: SettingsFormProps) {
   const [heroSubtitle, setHeroSubtitle] = useState(String(initial.hero_subtitle?.text || ""));
   const [storeName, setStoreName] = useState(String(initial.store_name?.text || DEFAULT_STORE_NAME));
   const [storeTagline, setStoreTagline] = useState(String(initial.store_tagline?.text || DEFAULT_STORE_TAGLINE));
+  const [instagram, setInstagram] = useState(String(initial.social_links?.instagram || ""));
+  const [tiktok, setTiktok] = useState(String(initial.social_links?.tiktok || ""));
+  const [facebook, setFacebook] = useState(String(initial.social_links?.facebook || ""));
+  const [youtube, setYoutube] = useState(String(initial.social_links?.youtube || ""));
+  const [threads, setThreads] = useState(String(initial.social_links?.threads || ""));
   const [loading, setLoading] = useState(false);
 
   async function saveSetting(key: string, value: Record<string, unknown>) {
@@ -45,6 +50,13 @@ export function SettingsForm({ initial }: SettingsFormProps) {
       await saveSetting("hero_subtitle", { text: heroSubtitle });
       await saveSetting("store_name", { text: storeName.trim() });
       await saveSetting("store_tagline", { text: storeTagline.trim() });
+      await saveSetting("social_links", {
+        instagram: instagram.trim(),
+        tiktok: tiktok.trim(),
+        facebook: facebook.trim(),
+        youtube: youtube.trim(),
+        threads: threads.trim(),
+      });
       toast.success("Impostazioni salvate");
     } catch {
       toast.error("Errore salvataggio");
@@ -81,6 +93,16 @@ export function SettingsForm({ initial }: SettingsFormProps) {
       </p>
       <Input label="Titolo hero home" value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} />
       <Input label="Sottotitolo hero home" value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} />
+      <div className="border-t border-ink-700 pt-4">
+        <p className="mb-3 text-sm font-semibold text-white">Social</p>
+        <div className="space-y-3">
+          <Input label="Instagram URL" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+          <Input label="TikTok URL" value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
+          <Input label="Facebook URL" value={facebook} onChange={(e) => setFacebook(e.target.value)} />
+          <Input label="YouTube URL" value={youtube} onChange={(e) => setYoutube(e.target.value)} />
+          <Input label="Threads URL" value={threads} onChange={(e) => setThreads(e.target.value)} />
+        </div>
+      </div>
       <Button type="submit" disabled={loading}>
         {loading ? "Salvataggio..." : "Salva impostazioni"}
       </Button>

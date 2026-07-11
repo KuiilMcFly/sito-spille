@@ -16,6 +16,7 @@ export default async function AdminSettingsPage() {
     "hero_subtitle",
     "store_name",
     "store_tagline",
+    "social_links",
     "orders_open",
     "theme_colors",
   ];

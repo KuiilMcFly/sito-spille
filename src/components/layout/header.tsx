@@ -2,10 +2,12 @@ import Link from "next/link";
 import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
 import { getStoreBranding } from "@/lib/settings";
 import { Sparkles, User } from "lucide-react";
+import { HeaderCartLink } from "@/components/layout/header-cart-link";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/prodotti", label: "Prodotti" },
+  { href: "/gruppi", label: "Gruppi" },
   { href: "/crea", label: "Crea la tua spilla" },
   { href: "/contatti", label: "Contatti" },
 ];
@@ -57,6 +59,7 @@ export async function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
+          <HeaderCartLink />
           {user ? (
             <>
               <Link

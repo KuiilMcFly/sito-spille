@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPrice, ORDER_STATUS_LABELS } from "@/lib/utils";
 import { Badge, getOrderStatusVariant } from "@/components/ui/badge";
+import { getFinishEffectLabel } from "@/lib/customizer/finish-effects";
+import type { CustomizationData } from "@/types/database";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -38,13 +40,20 @@ export default async function AccountOrderDetailPage({ params }: Props) {
     adminSupabase.from("order_status_history").select("*").eq("order_id", id).order("created_at"),
   ]);
 
-  const customItem = items?.find((i) => i.is_custom);
-  let designUrl: string | null = null;
-  if (customItem?.custom_design_path) {
+  const customItems = items?.filter((i) => i.is_custom) || [];
+  const customDesigns: { url: string; effect: string }[] = [];
+  for (const item of customItems) {
+    if (!item.custom_design_path) continue;
     const { data: signed } = await adminSupabase.storage
       .from("custom-designs")
-      .createSignedUrl(customItem.custom_design_path, 3600);
-    designUrl = signed?.signedUrl || null;
+      .createSignedUrl(item.custom_design_path, 3600);
+    if (signed?.signedUrl) {
+      const data = item.customization_data as CustomizationData | null;
+      customDesigns.push({
+        url: signed.signedUrl,
+        effect: getFinishEffectLabel(data?.finishEffect),
+      });
+    }
   }
 
   return (
@@ -78,29 +87,46 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           )}
         </div>
 
-        {designUrl && (
+        {customDesigns.length > 0 && (
           <div className="rounded-2xl border border-brand-100 bg-white p-6 text-center">
-            <h2 className="font-semibold text-ink-900">Il tuo design</h2>
-            <img
-              src={designUrl}
-              alt="Design spilla"
-              className="mx-auto mt-4 h-48 w-48 rounded-full object-cover pin-shadow"
-            />
+            <h2 className="font-semibold text-ink-900">I tuoi design</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {customDesigns.map((design, idx) => (
+                <div key={idx}>
+                  <img
+                    src={design.url}
+                    alt="Design spilla"
+                    className="mx-auto h-40 w-40 rounded-full object-cover pin-shadow"
+                  />
+                  <p className="mt-2 text-xs text-ink-500">{design.effect}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         <div className="rounded-2xl border border-brand-100 bg-white p-6">
           <h2 className="font-semibold text-ink-900">Riepilogo</h2>
           <ul className="mt-4 space-y-2">
-            {items?.map((item) => (
-              <li key={item.id} className="flex justify-between text-sm text-ink-700">
-                <span>
-                  {item.is_custom ? "Spilla custom" : (item.products as { name: string } | null)?.name}{" "}
-                  x{item.quantity} ({(item.pin_sizes as { name: string } | null)?.name})
-                </span>
-                <span>{formatPrice(item.line_total)}</span>
-              </li>
-            ))}
+            {items?.map((item) => {
+              const customData = item.customization_data as CustomizationData | null;
+              return (
+                <li key={item.id} className="text-sm text-ink-700">
+                  <div className="flex justify-between">
+                    <span>
+                      {item.is_custom ? "Spilla custom" : (item.products as { name: string } | null)?.name}{" "}
+                      x{item.quantity} ({(item.pin_sizes as { name: string } | null)?.name})
+                    </span>
+                    <span>{formatPrice(item.line_total)}</span>
+                  </div>
+                  {item.is_custom && customData?.finishEffect && (
+                    <p className="text-xs text-ink-400">
+                      Effetto: {getFinishEffectLabel(customData.finishEffect)}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
           </ul>
           <div className="mt-4 border-t border-brand-100 pt-4 space-y-1">
             <div className="flex justify-between text-sm">

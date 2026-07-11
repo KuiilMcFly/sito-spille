@@ -1,5 +1,4 @@
 import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
-import { getFreeShippingThreshold, getShippingMethods } from "@/lib/orders/pricing";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { getThemeColors } from "@/lib/theme/get-theme";
 import { PinCustomizer } from "@/components/customizer/pin-customizer";
@@ -12,32 +11,14 @@ export const metadata = {
 
 export default async function CreatePage() {
   const supabase = await createClientIfConfigured();
-  const user = await getServerUser();
 
-  const [sizesResult, shippingMethods, freeShippingThreshold, ordersOpen, theme] =
-    await Promise.all([
-      supabase
-        ? supabase.from("pin_sizes").select("*").eq("is_active", true).order("sort_order")
-        : Promise.resolve({ data: [] as Tables<"pin_sizes">[] }),
-      getShippingMethods(),
-      getFreeShippingThreshold(),
-      areOrdersOpen(),
-      getThemeColors(),
-    ]);
-
-  let profile = null;
-  if (user && supabase) {
-    try {
-      const { data } = await supabase
-        .from("customer_profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      profile = data;
-    } catch {
-      profile = null;
-    }
-  }
+  const [sizesResult, ordersOpen, theme] = await Promise.all([
+    supabase
+      ? supabase.from("pin_sizes").select("*").eq("is_active", true).order("sort_order")
+      : Promise.resolve({ data: [] as Tables<"pin_sizes">[] }),
+    areOrdersOpen(),
+    getThemeColors(),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
@@ -46,19 +27,14 @@ export default async function CreatePage() {
           Crea la tua spilla
         </h1>
         <p className="mt-3 text-ink-700">
-          Carica la tua immagine, personalizza posizione e taglia, poi ordina.
+          Carica la tua immagine, personalizza e aggiungi al carrello.
         </p>
       </div>
       <PinCustomizer
         sizes={sizesResult.data || []}
-        shippingMethods={shippingMethods}
-        freeShippingThreshold={freeShippingThreshold}
         ordersOpen={ordersOpen}
         previewFillColor={theme.brand100}
         previewStrokeColor={theme.brand500}
-        loggedInEmail={user?.email}
-        loggedInPhone={profile?.phone}
-        loggedInName={profile?.full_name}
       />
     </div>
   );
