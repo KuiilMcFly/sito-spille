@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { hasSupabaseAdminEnv } from "@/lib/supabase/admin";
+import { getStoreBranding } from "@/lib/settings";
 import {
   AdminSetupNotice,
   getSupabaseEnvStatus,
@@ -46,6 +47,7 @@ export default async function AdminLayout({
   }
 
   const supabase = await createClientIfConfigured();
+  const branding = await getStoreBranding();
   const {
     data: { user },
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
@@ -56,7 +58,7 @@ export default async function AdminLayout({
         <aside className="hidden w-64 flex-shrink-0 border-r border-ink-700 bg-ink-900 p-4 md:block">
           <Link href="/admin" className="block px-3 py-4">
             <p className="font-display text-lg font-bold text-white">
-              Valeria Senpai
+              {branding.name}
             </p>
             <p className="text-xs text-brand-300">Pannello Admin</p>
           </Link>

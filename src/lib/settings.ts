@@ -47,8 +47,22 @@ export async function getPublicSettings() {
       settings[row.key] = row.value;
     });
 
-    return settings;
-  } catch {
+  return settings;
+}
+
+export async function getStoreBranding() {
+  const nameSetting = await getSiteSetting<{ text?: string }>("store_name", {
+    text: "Valeria Senpai",
+  });
+  const taglineSetting = await getSiteSetting<{ text?: string }>("store_tagline", {
+    text: "Spille Custom",
+  });
+
+  return {
+    name: nameSetting.text || "Valeria Senpai",
+    tagline: taglineSetting.text || "Spille Custom",
+  };
+} catch {
     return {};
   }
 }

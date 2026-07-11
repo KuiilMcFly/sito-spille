@@ -13,6 +13,8 @@ export default async function AdminSettingsPage() {
     "store_phone",
     "hero_title",
     "hero_subtitle",
+    "store_name",
+    "store_tagline",
     "orders_open",
     "theme_colors",
   ];

@@ -17,6 +17,8 @@ export function SettingsForm({ initial }: SettingsFormProps) {
   const [phone, setPhone] = useState(String(initial.store_phone?.phone || ""));
   const [heroTitle, setHeroTitle] = useState(String(initial.hero_title?.text || ""));
   const [heroSubtitle, setHeroSubtitle] = useState(String(initial.hero_subtitle?.text || ""));
+  const [storeName, setStoreName] = useState(String(initial.store_name?.text || "Valeria Senpai"));
+  const [storeTagline, setStoreTagline] = useState(String(initial.store_tagline?.text || "Spille Custom"));
   const [loading, setLoading] = useState(false);
 
   async function saveSetting(key: string, value: Record<string, unknown>) {
@@ -40,6 +42,8 @@ export function SettingsForm({ initial }: SettingsFormProps) {
       await saveSetting("store_phone", { phone });
       await saveSetting("hero_title", { text: heroTitle });
       await saveSetting("hero_subtitle", { text: heroSubtitle });
+      await saveSetting("store_name", { text: storeName.trim() });
+      await saveSetting("store_tagline", { text: storeTagline.trim() });
       toast.success("Impostazioni salvate");
     } catch {
       toast.error("Errore salvataggio");
@@ -61,6 +65,19 @@ export function SettingsForm({ initial }: SettingsFormProps) {
       </p>
       <Input label="Email negozio" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <Input label="Telefono negozio" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Input
+        label="Nome sito (header)"
+        value={storeName}
+        onChange={(e) => setStoreName(e.target.value)}
+      />
+      <Input
+        label="Sottotitolo header"
+        value={storeTagline}
+        onChange={(e) => setStoreTagline(e.target.value)}
+      />
+      <p className="text-xs text-ink-400">
+        Appare in alto a sinistra su tutte le pagine del sito.
+      </p>
       <Input label="Titolo hero home" value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} />
       <Input label="Sottotitolo hero home" value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} />
       <Button type="submit" disabled={loading}>

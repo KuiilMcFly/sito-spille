@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
+import { getStoreBranding } from "@/lib/settings";
 import { Sparkles, User } from "lucide-react";
 
 const navLinks = [
@@ -11,6 +12,7 @@ const navLinks = [
 
 export async function Header() {
   const user = await getServerUser();
+  const branding = await getStoreBranding();
   let isAdmin = false;
 
   if (user) {
@@ -38,9 +40,9 @@ export async function Header() {
           </span>
           <div>
             <p className="font-display text-lg font-bold leading-tight text-ink-900">
-              Valeria Senpai
+              {branding.name}
             </p>
-            <p className="text-xs text-brand-600">Spille Custom</p>
+            <p className="text-xs text-brand-600">{branding.tagline}</p>
           </div>
         </Link>
         <nav className="hidden items-center gap-6 md:flex">
