@@ -49,9 +49,31 @@ CREATE INDEX IF NOT EXISTS idx_product_groups_slug ON product_groups(slug);
 CREATE INDEX IF NOT EXISTS idx_product_typologies_slug ON product_typologies(slug);
 CREATE INDEX IF NOT EXISTS idx_hero_slides_active ON hero_slides(is_active, sort_order);
 
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('site-assets', 'site-assets', true)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'site-assets',
+  'site-assets',
+  true,
+  10485760,
+  ARRAY[
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/avif',
+    'image/svg+xml',
+    'image/bmp',
+    'image/x-icon',
+    'image/vnd.microsoft.icon',
+    'image/heic',
+    'image/heif',
+    'image/tiff'
+  ]::text[]
+)
+ON CONFLICT (id) DO UPDATE SET
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 ALTER TABLE product_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE product_typologies ENABLE ROW LEVEL SECURITY;

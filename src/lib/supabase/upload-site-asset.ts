@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveImageContentType, resolveImageExtension } from "@/lib/images/content-type";
 import { v4 as uuidv4 } from "uuid";
 
 export type UploadSiteAssetResult =
@@ -13,11 +14,15 @@ export async function uploadSiteAsset(
     return { ok: false, error: "File vuoto" };
   }
 
+  const contentType = resolveImageContentType(file.name, file.type);
+  if (!contentType.startsWith("image/")) {
+    return { ok: false, error: "Formato file non supportato" };
+  }
+
   const supabase = createAdminClient();
-  const ext = file.name.split(".").pop() || "jpg";
+  const ext = resolveImageExtension(file.name, contentType);
   const path = folder + "/" + uuidv4() + "." + ext;
   const buffer = Buffer.from(await file.arrayBuffer());
-  const contentType = file.type || "image/jpeg";
 
   const { error } = await supabase.storage.from("site-assets").upload(path, buffer, {
     contentType,

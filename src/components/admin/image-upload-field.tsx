@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
+import { SITE_ASSET_IMAGE_ACCEPT } from "@/lib/images/content-type";
 
 type ImageUploadFieldProps = {
   label: string;
@@ -74,7 +75,7 @@ export function ImageUploadField({
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={SITE_ASSET_IMAGE_ACCEPT}
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0] || null)}
       />
