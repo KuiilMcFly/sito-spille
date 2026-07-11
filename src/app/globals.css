@@ -13,6 +13,8 @@
   --brand-700: #b80d5c;
   --accent-500: #7209b7;
   --accent-600: #5a078f;
+  --theme-primary-rgb: 247, 37, 133;
+  --theme-accent-rgb: 114, 9, 183;
   --ink-200: #e8dfe8;
   --ink-400: #9a8a9e;
   --ink-700: #4a3d52;
@@ -52,13 +54,13 @@ body {
 
 .gradient-hero {
   background:
-    radial-gradient(circle at 20% 20%, rgba(247, 37, 133, 0.15), transparent 40%),
-    radial-gradient(circle at 80% 0%, rgba(114, 9, 183, 0.12), transparent 35%),
-    linear-gradient(180deg, #fff8fb 0%, #fff0f7 100%);
+    radial-gradient(circle at 20% 20%, rgba(var(--theme-primary-rgb), 0.15), transparent 40%),
+    radial-gradient(circle at 80% 0%, rgba(var(--theme-accent-rgb), 0.12), transparent 35%),
+    linear-gradient(180deg, var(--background) 0%, var(--brand-50) 100%);
 }
 
 .pin-shadow {
   box-shadow:
-    0 20px 40px rgba(247, 37, 133, 0.2),
+    0 20px 40px rgba(var(--theme-primary-rgb), 0.2),
     inset 0 2px 4px rgba(255, 255, 255, 0.5);
 }

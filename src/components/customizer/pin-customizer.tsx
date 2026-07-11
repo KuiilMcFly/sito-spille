@@ -23,6 +23,8 @@ type PinCustomizerProps = {
   shippingMethods: ShippingMethod[];
   freeShippingThreshold: number;
   ordersOpen?: boolean;
+  previewFillColor?: string;
+  previewStrokeColor?: string;
   loggedInEmail?: string | null;
   loggedInPhone?: string | null;
   loggedInName?: string | null;
@@ -49,6 +51,8 @@ export function PinCustomizer({
   shippingMethods,
   freeShippingThreshold,
   ordersOpen = true,
+  previewFillColor = "#ffe0ef",
+  previewStrokeColor = "#f72585",
   loggedInEmail,
   loggedInPhone,
   loggedInName,
@@ -102,7 +106,7 @@ export function PinCustomizer({
     ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
     ctx.clip();
 
-    ctx.fillStyle = "#ffe0ef";
+    ctx.fillStyle = previewFillColor;
     ctx.fillRect(0, 0, size, size);
 
     if (img && imageLoaded) {
@@ -119,10 +123,10 @@ export function PinCustomizer({
 
     ctx.beginPath();
     ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-    ctx.strokeStyle = "#f72585";
+    ctx.strokeStyle = previewStrokeColor;
     ctx.lineWidth = 4;
     ctx.stroke();
-  }, [customization, imageLoaded]);
+  }, [customization, imageLoaded, previewFillColor, previewStrokeColor]);
 
   useEffect(() => {
     drawCanvas();

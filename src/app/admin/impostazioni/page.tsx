@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { OrdersToggle } from "@/components/admin/orders-toggle";
+import { ThemeSettingsForm } from "@/components/admin/theme-settings-form";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 
 export default async function AdminSettingsPage() {
@@ -12,6 +13,7 @@ export default async function AdminSettingsPage() {
     "hero_title",
     "hero_subtitle",
     "orders_open",
+    "theme_colors",
   ];
 
   const [{ data }, ordersOpen] = await Promise.all([
@@ -30,6 +32,10 @@ export default async function AdminSettingsPage() {
       <p className="mt-1 text-ink-400">Configura spedizione, contatti e testi del sito</p>
       <div className="mt-6 space-y-8">
         <OrdersToggle initialOpen={ordersOpen} />
+        <ThemeSettingsForm
+          initialPrimary={String(initial.theme_colors?.primary || "")}
+          initialAccent={String(initial.theme_colors?.accent || "")}
+        />
         <SettingsForm initial={initial} />
       </div>
     </div>

@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Outfit, Playfair_Display } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { CookieBanner } from "@/components/layout/cookie-banner";
+import { ThemeVariables } from "@/components/theme/theme-variables";
 import "./globals.css";
 
 const bodyFont = Outfit({
@@ -38,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="it" className={bodyFont.variable + " " + displayFont.variable}>
       <body className="min-h-screen antialiased">
+        <ThemeVariables />
         {children}
         <CookieBanner />
         <Toaster position="top-center" />

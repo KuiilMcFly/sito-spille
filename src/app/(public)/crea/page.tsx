@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getFreeShippingThreshold, getShippingMethods } from "@/lib/orders/pricing";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
+import { getThemeColors } from "@/lib/theme/get-theme";
 import { PinCustomizer } from "@/components/customizer/pin-customizer";
 
 export const metadata = {
@@ -11,12 +12,13 @@ export const metadata = {
 export default async function CreatePage() {
   const supabase = await createClient();
 
-  const [{ data: sizes }, shippingMethods, freeShippingThreshold, ordersOpen, { data: { user } }] =
+  const [{ data: sizes }, shippingMethods, freeShippingThreshold, ordersOpen, theme, { data: { user } }] =
     await Promise.all([
       supabase.from("pin_sizes").select("*").eq("is_active", true).order("sort_order"),
       getShippingMethods(),
       getFreeShippingThreshold(),
       areOrdersOpen(),
+      getThemeColors(),
       supabase.auth.getUser(),
     ]);
 
@@ -45,6 +47,8 @@ export default async function CreatePage() {
         shippingMethods={shippingMethods}
         freeShippingThreshold={freeShippingThreshold}
         ordersOpen={ordersOpen}
+        previewFillColor={theme.brand100}
+        previewStrokeColor={theme.brand500}
         loggedInEmail={user?.email}
         loggedInPhone={profile?.phone}
         loggedInName={profile?.full_name}
