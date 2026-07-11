@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
+import { getServerUser } from "@/lib/supabase/server";
 import { ProductDetailClient } from "@/components/catalog/product-detail-client";
 import type { ProductWithImages } from "@/types/database";
 
@@ -42,7 +43,7 @@ export default async function ProductDetailPage({ params }: Props) {
     notFound();
   }
 
-  const [productResult, ordersOpen] = await Promise.all([
+  const [productResult, ordersOpen, user] = await Promise.all([
     supabase
       .from("products")
       .select("*, product_images(*), pin_sizes(*), product_groups(*), product_typologies(*)")
@@ -50,6 +51,7 @@ export default async function ProductDetailPage({ params }: Props) {
       .eq("is_active", true)
       .single(),
     areOrdersOpen(),
+    getServerUser(),
   ]);
 
   const product = productResult.data;
@@ -60,6 +62,7 @@ export default async function ProductDetailPage({ params }: Props) {
       <ProductDetailClient
         product={product as unknown as ProductWithImages}
         ordersOpen={ordersOpen}
+        loggedIn={Boolean(user)}
       />
     </div>
   );

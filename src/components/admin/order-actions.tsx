@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ORDER_STATUS_LABELS } from "@/lib/utils";
 import type { Enums } from "@/types/database";
@@ -22,12 +23,22 @@ type OrderActionsProps = {
   orderId: string;
   currentStatus: Enums<"order_status">;
   adminNotes: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
 };
 
-export function OrderActions({ orderId, currentStatus, adminNotes }: OrderActionsProps) {
+export function OrderActions({
+  orderId,
+  currentStatus,
+  adminNotes,
+  trackingNumber,
+  trackingUrl,
+}: OrderActionsProps) {
   const router = useRouter();
   const [status, setStatus] = useState(currentStatus);
   const [notes, setNotes] = useState(adminNotes || "");
+  const [trackingNum, setTrackingNum] = useState(trackingNumber || "");
+  const [trackingLink, setTrackingLink] = useState(trackingUrl || "");
   const [loading, setLoading] = useState(false);
 
   async function handleUpdate() {
@@ -35,7 +46,13 @@ export function OrderActions({ orderId, currentStatus, adminNotes }: OrderAction
     const response = await fetch("/api/admin/orders/" + orderId, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, admin_notes: notes }),
+      body: JSON.stringify({
+        status,
+        admin_notes: notes,
+        tracking_number: trackingNum || null,
+        tracking_url: trackingLink || null,
+        notify_customer: true,
+      }),
     });
 
     if (!response.ok) {
@@ -64,12 +81,29 @@ export function OrderActions({ orderId, currentStatus, adminNotes }: OrderAction
           ))}
         </select>
       </div>
+      {(status === "shipped" || trackingNum || trackingLink) && (
+        <>
+          <Input
+            label="Numero tracking"
+            value={trackingNum}
+            onChange={(e) => setTrackingNum(e.target.value)}
+          />
+          <Input
+            label="URL tracking"
+            value={trackingLink}
+            onChange={(e) => setTrackingLink(e.target.value)}
+          />
+        </>
+      )}
       <Textarea
         label="Note admin"
         rows={3}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
       />
+      <p className="text-xs text-ink-500">
+        Al cambio stato il cliente riceve un email di aggiornamento (se Resend e configurato).
+      </p>
       <Button onClick={handleUpdate} disabled={loading}>
         {loading ? "Salvataggio..." : "Aggiorna ordine"}
       </Button>

@@ -65,6 +65,8 @@ export async function POST(request: NextRequest) {
         to: order.customer_email,
         orderNumber: order.order_number,
         total: order.total_amount,
+        discountAmount: order.discount_amount || 0,
+        promotionName: order.promotion_code,
       });
       await sendAdminNewOrderEmail({
         orderNumber: order.order_number,

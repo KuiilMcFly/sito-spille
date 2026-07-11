@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PayPalCheckout } from "@/components/payments/paypal-checkout";
 import { useCart } from "@/lib/cart/cart-context";
 import { formatPrice } from "@/lib/utils";
-import { calcShippingCost } from "@/lib/orders/pricing-client";
 import { ensureOrdersOpen } from "@/lib/orders/orders-open-client";
 import { ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-messages";
 import type { Tables } from "@/types/database";
@@ -38,15 +37,99 @@ export function CheckoutClient({
   const [phone, setPhone] = useState(loggedInPhone || "");
   const [name, setName] = useState(loggedInName || "");
   const [notes, setNotes] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [freeShippingPromo, setFreeShippingPromo] = useState(false);
+  const [promotionName, setPromotionName] = useState<string | null>(null);
+  const [promoLoading, setPromoLoading] = useState(false);
   const [orderPreparing, setOrderPreparing] = useState(false);
 
   const selectedShipping = shippingMethods.find((m) => m.id === shippingMethodId);
-  const shippingCost = calcShippingCost(
-    subtotal,
-    selectedShipping?.price || 0,
-    freeShippingThreshold
-  );
-  const total = subtotal + shippingCost;
+  const baseShippingCost = selectedShipping?.price || 0;
+  const shippingCost =
+    freeShippingPromo || subtotal - discountAmount >= freeShippingThreshold
+      ? 0
+      : baseShippingCost;
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount);
+  const total = discountedSubtotal + shippingCost;
+
+  function buildCheckoutItems() {
+    return items.map((item) => {
+      if (item.type === "custom") {
+        return {
+          type: "custom",
+          pinSizeId: item.pinSizeId,
+          quantity: item.quantity,
+          designBase64: item.designBase64,
+          customization: item.customization,
+        };
+      }
+      return {
+        type: "catalog",
+        productId: item.productId,
+        quantity: item.quantity,
+      };
+    });
+  }
+
+  async function refreshPromotion(codeOverride?: string) {
+    if (items.length === 0) return;
+    setPromoLoading(true);
+    try {
+      const response = await fetch("/api/promotions/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          promoCode: codeOverride !== undefined ? codeOverride : promoCode,
+          items: buildCheckoutItems(),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Errore promo");
+      setDiscountAmount(data.discountAmount || 0);
+      setFreeShippingPromo(Boolean(data.freeShipping));
+      setPromotionName(data.promotionName || null);
+    } catch {
+      setDiscountAmount(0);
+      setFreeShippingPromo(false);
+      setPromotionName(null);
+    } finally {
+      setPromoLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refreshPromotion("");
+  }, [items, subtotal]);
+
+  async function applyPromoCode() {
+    if (items.length === 0) return;
+    setPromoLoading(true);
+    try {
+      const response = await fetch("/api/promotions/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          promoCode: promoCode,
+          items: buildCheckoutItems(),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Errore promo");
+      setDiscountAmount(data.discountAmount || 0);
+      setFreeShippingPromo(Boolean(data.freeShipping));
+      setPromotionName(data.promotionName || null);
+      if (data.promotionName || data.discountAmount > 0 || data.freeShipping) {
+        toast.success("Codice applicato");
+      } else {
+        toast.error("Codice non valido o non applicabile");
+      }
+    } catch {
+      toast.error("Codice non valido");
+    } finally {
+      setPromoLoading(false);
+    }
+  }
 
   if (items.length === 0) {
     return <p className="text-ink-600">Il carrello e vuoto.</p>;
@@ -78,22 +161,8 @@ export function CheckoutClient({
         name: name.trim(),
         notes: notes.trim(),
         shippingMethodId,
-        items: items.map((item) => {
-          if (item.type === "custom") {
-            return {
-              type: "custom",
-              pinSizeId: item.pinSizeId,
-              quantity: item.quantity,
-              designBase64: item.designBase64,
-              customization: item.customization,
-            };
-          }
-          return {
-            type: "catalog",
-            productId: item.productId,
-            quantity: item.quantity,
-          };
-        }),
+        promotionCode: promoCode.trim() || null,
+        items: buildCheckoutItems(),
       };
 
       const response = await fetch("/api/orders/checkout", {
@@ -160,11 +229,40 @@ export function CheckoutClient({
         <Input label="Nome" value={name} onChange={(e) => setName(e.target.value)} />
         <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
+        <div>
+          <label className="mb-2 block text-sm font-medium">Codice sconto</label>
+          <div className="flex gap-2">
+            <input
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+              className="flex-1 rounded-xl border border-ink-200 px-4 py-2.5 text-sm"
+              placeholder="CODICE"
+            />
+            <button
+              type="button"
+              onClick={applyPromoCode}
+              disabled={promoLoading || !promoCode.trim()}
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Applica
+            </button>
+          </div>
+          {promotionName && (
+            <p className="mt-2 text-xs text-brand-600">Promo: {promotionName}</p>
+          )}
+        </div>
+
         <div className="rounded-xl bg-brand-50 p-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Subtotale</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
+          {discountAmount > 0 && (
+            <div className="flex justify-between text-emerald-700">
+              <span>Sconto</span>
+              <span>-{formatPrice(discountAmount)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>Spedizione</span>
             <span>{shippingCost === 0 ? "Gratis" : formatPrice(shippingCost)}</span>

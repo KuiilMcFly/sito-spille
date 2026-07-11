@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPrice, ORDER_STATUS_LABELS } from "@/lib/utils";
 import { Badge, getOrderStatusVariant } from "@/components/ui/badge";
+import { OrderStatusTimeline } from "@/components/orders/order-status-timeline";
 import { getFinishEffectLabel } from "@/lib/customizer/finish-effects";
 import type { CustomizationData } from "@/types/database";
 
@@ -75,10 +76,14 @@ export default async function AccountOrderDetailPage({ params }: Props) {
 
       <div className="mt-8 space-y-6">
         <div className="rounded-2xl border border-brand-100 bg-white p-6">
-          <h2 className="font-semibold text-ink-900">Stato spedizione</h2>
-          <p className="mt-2 text-ink-700">
-            {ORDER_STATUS_LABELS[order.status]}
-          </p>
+          <h2 className="font-semibold text-ink-900">Stato ordine</h2>
+          <div className="mt-4">
+            <OrderStatusTimeline
+              currentStatus={order.status}
+              trackingNumber={order.tracking_number}
+              trackingUrl={order.tracking_url}
+            />
+          </div>
           {shippingMethod && (
             <p className="mt-1 text-sm text-ink-400">
               Metodo: {shippingMethod.name}
@@ -133,6 +138,12 @@ export default async function AccountOrderDetailPage({ params }: Props) {
               <span>Subtotale</span>
               <span>{formatPrice(order.subtotal)}</span>
             </div>
+            {(order.discount_amount || 0) > 0 && (
+              <div className="flex justify-between text-sm text-emerald-700">
+                <span>Sconto{order.promotion_code ? " (" + order.promotion_code + ")" : ""}</span>
+                <span>-{formatPrice(order.discount_amount || 0)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span>Spedizione</span>
               <span>{order.shipping_cost === 0 ? "Gratis" : formatPrice(order.shipping_cost)}</span>

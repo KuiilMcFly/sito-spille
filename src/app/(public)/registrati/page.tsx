@@ -42,6 +42,12 @@ export default function RegisterPage() {
       phone: phone || null,
     });
 
+    fetch("/api/account/welcome", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, name: fullName }),
+    }).catch(() => null);
+
     toast.success("Account creato! Benvenuto.");
     router.push("/account");
     router.refresh();

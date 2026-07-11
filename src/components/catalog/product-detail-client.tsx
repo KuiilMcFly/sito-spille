@@ -8,14 +8,20 @@ import { useCart } from "@/lib/cart/cart-context";
 import { ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-messages";
 import type { ProductWithImages } from "@/types/database";
 import { Package, ShoppingCart } from "lucide-react";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import toast from "react-hot-toast";
 
 type ProductDetailProps = {
   product: ProductWithImages;
   ordersOpen?: boolean;
+  loggedIn?: boolean;
 };
 
-export function ProductDetailClient({ product, ordersOpen = true }: ProductDetailProps) {
+export function ProductDetailClient({
+  product,
+  ordersOpen = true,
+  loggedIn = false,
+}: ProductDetailProps) {
   const { addCatalogItem } = useCart();
   const [quantity, setQuantity] = useState(1);
 
@@ -93,6 +99,7 @@ export function ProductDetailClient({ product, ordersOpen = true }: ProductDetai
             <ShoppingCart className="mr-2 h-4 w-4" />
             Aggiungi al carrello
           </Button>
+          <WishlistButton productId={product.id} loggedIn={loggedIn} />
         </div>
       </div>
     </div>

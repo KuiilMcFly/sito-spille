@@ -14,14 +14,14 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={"/prodotti/" + product.slug}
-      className="group overflow-hidden rounded-3xl border border-brand-100 bg-white transition hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-200/50"
+      className="card-hover-lift group overflow-hidden rounded-3xl border border-brand-100 bg-white"
     >
       <div className="relative aspect-square bg-brand-50">
         {imagePath ? (
           <img
             src={getStorageUrl(imagePath)}
             alt={primaryImage?.alt_text || product.name}
-            className="h-full w-full object-cover transition group-hover:scale-105"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-brand-300">

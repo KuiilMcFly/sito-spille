@@ -15,14 +15,14 @@ function FeaturedGroupCard({ item }: { item: Extract<FeaturedItem, { kind: "grou
   return (
     <Link
       href={"/gruppi/" + group.slug}
-      className="group overflow-hidden rounded-3xl border border-brand-100 bg-white transition hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-200/50"
+      className="card-hover-lift group overflow-hidden rounded-3xl border border-brand-100 bg-white"
     >
       <div className="relative aspect-[4/3] bg-brand-50">
         {group.cover_path ? (
           <img
             src={getSiteAssetUrl(group.cover_path)}
             alt={group.name}
-            className="h-full w-full object-cover transition group-hover:scale-105"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-brand-300">
@@ -49,10 +49,10 @@ function FeaturedTypologyCard({ item }: { item: Extract<FeaturedItem, { kind: "t
   return (
     <Link
       href={"/tipologie/" + typology.slug}
-      className="group overflow-hidden rounded-3xl border border-brand-100 bg-white transition hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-200/50"
+      className="card-hover-lift group overflow-hidden rounded-3xl border border-brand-100 bg-white"
     >
       <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-brand-50 to-accent-50">
-        <Tags className="h-16 w-16 text-brand-400 transition group-hover:scale-110" />
+        <Tags className="card-image-zoom h-16 w-16 text-brand-400" />
         <span className="absolute left-3 top-3 rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white">
           Tipologia
         </span>
@@ -72,10 +72,10 @@ function FeaturedSizeCard({ item }: { item: Extract<FeaturedItem, { kind: "size"
   return (
     <Link
       href="/crea"
-      className="group overflow-hidden rounded-3xl border border-brand-100 bg-white transition hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-200/50"
+      className="card-hover-lift group overflow-hidden rounded-3xl border border-brand-100 bg-white"
     >
       <div className="relative flex aspect-square items-center justify-center bg-brand-50">
-        <Ruler className="h-16 w-16 text-brand-400 transition group-hover:scale-110" />
+        <Ruler className="card-image-zoom h-16 w-16 text-brand-400" />
         <span className="absolute left-3 top-3 rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white">
           Taglia
         </span>

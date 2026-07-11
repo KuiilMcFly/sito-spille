@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { items, email, phone, name, notes, shippingMethodId } = body;
+    const { items, email, phone, name, notes, shippingMethodId, promotionCode } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Carrello vuoto" }, { status: 400 });
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       notes,
       shippingMethodId,
       userId: user?.id || null,
+      promotionCode: body.promotionCode || null,
     });
 
     return NextResponse.json(result);

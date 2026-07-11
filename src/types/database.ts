@@ -144,14 +144,19 @@ export type Database = {
           customer_name: string | null;
           customer_notes: string | null;
           customer_phone: string;
+          discount_amount: number;
           id: string;
           order_number: string;
           order_type: Database["public"]["Enums"]["order_type"];
+          promotion_code: string | null;
+          promotion_id: string | null;
           shipping_address: Json | null;
           shipping_cost: number;
           status: Database["public"]["Enums"]["order_status"];
           subtotal: number;
           total_amount: number;
+          tracking_number: string | null;
+          tracking_url: string | null;
           updated_at: string;
           user_id: string | null;
           shipping_method_id: string | null;
@@ -164,14 +169,19 @@ export type Database = {
           customer_name?: string | null;
           customer_notes?: string | null;
           customer_phone: string;
+          discount_amount?: number;
           id?: string;
           order_number?: string;
           order_type: Database["public"]["Enums"]["order_type"];
+          promotion_code?: string | null;
+          promotion_id?: string | null;
           shipping_address?: Json | null;
           shipping_cost?: number;
           status?: Database["public"]["Enums"]["order_status"];
           subtotal?: number;
           total_amount?: number;
+          tracking_number?: string | null;
+          tracking_url?: string | null;
           updated_at?: string;
           user_id?: string | null;
           shipping_method_id?: string | null;
@@ -184,19 +194,32 @@ export type Database = {
           customer_name?: string | null;
           customer_notes?: string | null;
           customer_phone?: string;
+          discount_amount?: number;
           id?: string;
           order_number?: string;
           order_type?: Database["public"]["Enums"]["order_type"];
+          promotion_code?: string | null;
+          promotion_id?: string | null;
           shipping_address?: Json | null;
           shipping_cost?: number;
           status?: Database["public"]["Enums"]["order_status"];
           subtotal?: number;
           total_amount?: number;
+          tracking_number?: string | null;
+          tracking_url?: string | null;
           updated_at?: string;
           user_id?: string | null;
           shipping_method_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "orders_promotion_id_fkey";
+            columns: ["promotion_id"];
+            isOneToOne: false;
+            referencedRelation: "promotions";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       payment_events: {
         Row: {
@@ -524,6 +547,130 @@ export type Database = {
         };
         Relationships: [];
       };
+      promotion_targets: {
+        Row: {
+          id: string;
+          promotion_id: string;
+          target_id: string | null;
+          target_type: Database["public"]["Enums"]["promotion_target_type"];
+        };
+        Insert: {
+          id?: string;
+          promotion_id: string;
+          target_id?: string | null;
+          target_type: Database["public"]["Enums"]["promotion_target_type"];
+        };
+        Update: {
+          id?: string;
+          promotion_id?: string;
+          target_id?: string | null;
+          target_type?: Database["public"]["Enums"]["promotion_target_type"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "promotion_targets_promotion_id_fkey";
+            columns: ["promotion_id"];
+            isOneToOne: false;
+            referencedRelation: "promotions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      promotions: {
+        Row: {
+          admin_notes: string | null;
+          bundle_quantity: number | null;
+          code: string | null;
+          created_at: string;
+          discount_value: number;
+          ends_at: string | null;
+          id: string;
+          is_active: boolean;
+          min_cart_amount: number | null;
+          min_quantity: number;
+          name: string;
+          priority: number;
+          promotion_type: Database["public"]["Enums"]["promotion_type"];
+          requires_code: boolean;
+          starts_at: string | null;
+          updated_at: string;
+          usage_count: number;
+          usage_instructions: string;
+          usage_limit: number | null;
+        };
+        Insert: {
+          admin_notes?: string | null;
+          bundle_quantity?: number | null;
+          code?: string | null;
+          created_at?: string;
+          discount_value?: number;
+          ends_at?: string | null;
+          id?: string;
+          is_active?: boolean;
+          min_cart_amount?: number | null;
+          min_quantity?: number;
+          name: string;
+          priority?: number;
+          promotion_type: Database["public"]["Enums"]["promotion_type"];
+          requires_code?: boolean;
+          starts_at?: string | null;
+          updated_at?: string;
+          usage_count?: number;
+          usage_instructions: string;
+          usage_limit?: number | null;
+        };
+        Update: {
+          admin_notes?: string | null;
+          bundle_quantity?: number | null;
+          code?: string | null;
+          created_at?: string;
+          discount_value?: number;
+          ends_at?: string | null;
+          id?: string;
+          is_active?: boolean;
+          min_cart_amount?: number | null;
+          min_quantity?: number;
+          name?: string;
+          priority?: number;
+          promotion_type?: Database["public"]["Enums"]["promotion_type"];
+          requires_code?: boolean;
+          starts_at?: string | null;
+          updated_at?: string;
+          usage_count?: number;
+          usage_instructions?: string;
+          usage_limit?: number | null;
+        };
+        Relationships: [];
+      };
+      wishlist_items: {
+        Row: {
+          created_at: string;
+          id: string;
+          product_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          product_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          product_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       product_typologies: {
         Row: {
           created_at: string;
@@ -718,6 +865,14 @@ export type Database = {
         | "failed"
         | "refunded"
         | "partially_refunded";
+      promotion_target_type: "all" | "product" | "product_group" | "product_typology";
+      promotion_type:
+        | "percent_off"
+        | "fixed_off"
+        | "free_shipping"
+        | "bundle_fixed_price"
+        | "bundle_percent_off"
+        | "quantity_deal";
     };
     CompositeTypes: Record<string, never>;
   };

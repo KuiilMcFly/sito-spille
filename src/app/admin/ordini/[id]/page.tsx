@@ -103,7 +103,17 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 );
               })}
             </ul>
-            <div className="mt-4 border-t border-ink-700 pt-4">
+            <div className="mt-4 border-t border-ink-700 pt-4 space-y-1">
+              <div className="flex justify-between text-sm text-ink-400">
+                <span>Subtotale</span>
+                <span>{formatPrice(order.subtotal)}</span>
+              </div>
+              {(order.discount_amount || 0) > 0 && (
+                <div className="flex justify-between text-sm text-emerald-400">
+                  <span>Sconto{order.promotion_code ? " (" + order.promotion_code + ")" : ""}</span>
+                  <span>-{formatPrice(order.discount_amount || 0)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm text-ink-400">
                 <span>Spedizione</span>
                 <span>{formatPrice(order.shipping_cost)}</span>
@@ -161,6 +171,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             orderId={order.id}
             currentStatus={order.status}
             adminNotes={order.admin_notes}
+            trackingNumber={order.tracking_number}
+            trackingUrl={order.tracking_url}
           />
 
           {history && history.length > 0 && (

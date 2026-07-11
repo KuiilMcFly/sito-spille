@@ -24,10 +24,10 @@ export function TypologyGrid({ typologies, emptyMessage }: TypologyGridProps) {
         <Link
           key={typology.id}
           href={"/tipologie/" + typology.slug}
-          className="group overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm transition hover:shadow-lg"
+          className="card-hover-lift group overflow-hidden rounded-3xl border border-brand-100 bg-white shadow-sm"
         >
           <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-brand-50 to-accent-50">
-            <Tags className="h-14 w-14 text-brand-400 transition group-hover:scale-110" />
+            <Tags className="card-image-zoom h-14 w-14 text-brand-400" />
           </div>
           <div className="p-5">
             <h2 className="font-display text-xl font-bold text-ink-900">{typology.name}</h2>

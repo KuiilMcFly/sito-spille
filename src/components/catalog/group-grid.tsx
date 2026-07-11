@@ -25,14 +25,14 @@ export function GroupGrid({ groups, emptyMessage }: GroupGridProps) {
         <Link
           key={group.id}
           href={"/gruppi/" + group.slug}
-          className="group overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm transition hover:shadow-lg"
+          className="card-hover-lift group overflow-hidden rounded-3xl border border-brand-100 bg-white shadow-sm"
         >
           <div className="relative aspect-[4/3] bg-brand-50">
             {group.cover_path ? (
               <img
                 src={getSiteAssetUrl(group.cover_path)}
                 alt={group.name}
-                className="h-full w-full object-cover transition group-hover:scale-105"
+                className="h-full w-full object-cover"
               />
             ) : (
               <div className="flex h-full items-center justify-center">

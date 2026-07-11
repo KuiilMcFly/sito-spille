@@ -19,6 +19,12 @@
   --ink-400: #9a8a9e;
   --ink-700: #4a3d52;
   --ink-900: #1a1020;
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 220ms;
+  --duration-normal: 420ms;
+  --duration-slow: 700ms;
+  --duration-hero: 1100ms;
 }
 
 @theme inline {
@@ -48,8 +54,294 @@ body {
   font-family: var(--font-body-family), system-ui, sans-serif;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 .font-display {
   font-family: var(--font-display-family), Georgia, serif;
+}
+
+.btn-primary {
+  border-radius: 9999px;
+  background: var(--brand-500);
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 10px 25px rgba(var(--theme-primary-rgb), 0.28);
+  transition:
+    transform var(--duration-normal) var(--ease-smooth),
+    background-color var(--duration-fast) ease,
+    box-shadow var(--duration-normal) var(--ease-smooth);
+}
+
+.btn-primary:hover {
+  background: var(--brand-600);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(var(--theme-primary-rgb), 0.35);
+}
+
+.btn-secondary {
+  border-radius: 9999px;
+  border: 2px solid var(--brand-300);
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  color: var(--brand-700);
+  transition:
+    transform var(--duration-normal) var(--ease-smooth),
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.btn-secondary:hover {
+  background: var(--brand-50);
+  transform: translateY(-2px);
+}
+
+.card-hover-lift {
+  transition:
+    transform var(--duration-slow) var(--ease-smooth),
+    box-shadow var(--duration-slow) var(--ease-smooth);
+  will-change: transform;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(var(--theme-primary-rgb), 0.14);
+}
+
+.card-hover-lift img,
+.card-hover-lift .card-image-zoom {
+  transition: transform var(--duration-slow) var(--ease-smooth);
+}
+
+.card-hover-lift:hover img,
+.card-hover-lift:hover .card-image-zoom {
+  transform: scale(1.06);
+}
+
+.reveal-section {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.85s var(--ease-out-expo),
+    transform 0.85s var(--ease-out-expo);
+}
+
+.reveal-section-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-slide-layer {
+  opacity: 0;
+  z-index: 0;
+  transition: opacity var(--duration-hero) var(--ease-smooth);
+  pointer-events: none;
+}
+
+.hero-slide-layer-active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.hero-slide-image {
+  transform: scale(1.04);
+  will-change: transform, opacity;
+}
+
+.hero-slide-image-active {
+  animation: hero-ken-burns 9s var(--ease-smooth) forwards;
+}
+
+@keyframes hero-ken-burns {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+
+.hero-content-enter {
+  animation: hero-content-in 0.85s var(--ease-out-expo) both;
+}
+
+.hero-content-enter-right {
+  animation: hero-content-in-right 0.85s var(--ease-out-expo) both;
+}
+
+.hero-content-enter-left {
+  animation: hero-content-in-left 0.85s var(--ease-out-expo) both;
+}
+
+@keyframes hero-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes hero-content-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(36px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes hero-content-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-36px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.hero-fallback-enter {
+  animation: hero-content-in 1s var(--ease-out-expo) both;
+}
+
+.hero-nav-btn {
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  transition:
+    transform var(--duration-fast) var(--ease-smooth),
+    background-color var(--duration-fast) ease,
+    box-shadow var(--duration-normal) var(--ease-smooth);
+}
+
+.hero-nav-btn:hover {
+  transform: scale(1.08);
+  background: white;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.hero-nav-btn:active {
+  transform: scale(0.96);
+}
+
+.hero-dot {
+  position: relative;
+  height: 0.5rem;
+  width: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.45);
+  transition:
+    width var(--duration-slow) var(--ease-smooth),
+    background-color var(--duration-fast) ease;
+}
+
+.hero-dot-active {
+  width: 2.25rem;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.hero-dot-progress {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  border-radius: inherit;
+  background: white;
+  animation-name: hero-dot-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes hero-dot-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.hero-card {
+  will-change: transform, opacity;
+}
+
+.faq-item {
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-normal) var(--ease-smooth),
+    transform var(--duration-normal) var(--ease-smooth);
+}
+
+.faq-item:hover {
+  border-color: var(--brand-200);
+  box-shadow: 0 8px 24px rgba(var(--theme-primary-rgb), 0.08);
+}
+
+.faq-item[open] {
+  border-color: var(--brand-300);
+  box-shadow: 0 12px 28px rgba(var(--theme-primary-rgb), 0.1);
+}
+
+.faq-item summary {
+  transition: color var(--duration-fast) ease;
+}
+
+.faq-item summary:hover {
+  color: var(--brand-600);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal-section {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero-slide-layer {
+    transition-duration: 0.01ms;
+  }
+
+  .hero-slide-image-active {
+    animation: none;
+    transform: scale(1);
+  }
+
+  .hero-content-enter,
+  .hero-content-enter-right,
+  .hero-content-enter-left,
+  .hero-fallback-enter {
+    animation: none;
+  }
+
+  .hero-dot-progress {
+    animation: none;
+    transform: scaleX(1);
+  }
+
+  .card-hover-lift:hover {
+    transform: none;
+  }
+
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
 }
 
 .gradient-hero {
