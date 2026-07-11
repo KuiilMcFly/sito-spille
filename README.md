@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Valeria Senpai Spille Custom
 
-## Getting Started
+E-commerce per spille rotonde personalizzate con Next.js, Supabase e PayPal.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router) + TypeScript + Tailwind CSS
+- Supabase (Postgres, Auth, Storage, RLS)
+- PayPal Checkout Orders API v2
+- Resend (email transazionali, opzionale)
+
+## Setup locale
 
 ```bash
+npm install
+cp .env.local.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apri [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variabili ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Vedi `.env.local.example` per l'elenco completo.
 
-## Learn More
+## Creare utente admin
 
-To learn more about Next.js, take a look at the following resources:
+1. Vai su Supabase Dashboard → Authentication → Users → Add user
+2. Copia l'UUID dell'utente
+3. Esegui in SQL Editor:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sql
+INSERT INTO admin_profiles (id, full_name, role)
+VALUES ('UUID-UTENTE', 'Admin', 'admin');
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## PayPal Sandbox
 
-## Deploy on Vercel
+1. Crea app su [developer.paypal.com](https://developer.paypal.com)
+2. Inserisci `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` in `.env.local`
+3. Configura webhook su `https://tuodominio.com/api/webhooks/paypal`
+4. Inserisci `PAYPAL_WEBHOOK_ID`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Struttura
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/` — Home e vetrina
+- `/crea` — Customizer spilla
+- `/prodotti` — Catalogo
+- `/admin` — Pannello gestionale
+
+## Database
+
+Schema applicato su Supabase con tabelle: `pin_sizes`, `products`, `product_images`, `orders`, `order_items`, `payments`, `payment_events`, `order_status_history`, `site_settings`, `admin_profiles`.
