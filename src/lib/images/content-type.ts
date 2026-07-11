@@ -46,3 +46,16 @@ export function resolveImageExtension(fileName: string, contentType: string): st
 
 export const SITE_ASSET_IMAGE_ACCEPT =
   "image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml,image/bmp,image/x-icon,image/heic,image/heif,image/tiff";
+
+export const SITE_ASSET_MAX_BYTES = 50 * 1024 * 1024;
+
+export function formatSiteAssetMaxSize(): string {
+  return "50 MB";
+}
+
+export function isAllowedSiteAssetPath(path: string, folder: string): boolean {
+  if (!path || path.includes("..")) return false;
+  const prefix = folder.endsWith("/") ? folder : folder + "/";
+  return path.startsWith(prefix) && path.length > prefix.length;
+}
+

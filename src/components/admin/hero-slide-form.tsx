@@ -8,6 +8,8 @@ import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { getSiteAssetUrl } from "@/lib/utils";
 import { HERO_PRODUCT_POSITIONS, parseHeroProductPosition } from "@/lib/hero/constants";
 import type { HeroProductPosition } from "@/lib/hero/constants";
+import { formatSiteAssetMaxSize } from "@/lib/images/content-type";
+import { uploadSiteAssetClient } from "@/lib/site-assets/upload-client";
 import type { Tables } from "@/types/database";
 import toast from "react-hot-toast";
 
@@ -40,22 +42,47 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
       return;
     }
 
+    if (!slide && !background) {
+      toast.error("Background obbligatorio");
+      return;
+    }
+
     setLoading(true);
 
-    const formData = new FormData();
-    formData.append("productId", productId);
-    formData.append("productPosition", productPosition);
-    formData.append("titleOverride", titleOverride);
-    formData.append("subtitleOverride", subtitleOverride);
-    formData.append("ctaLabel", ctaLabel);
-    formData.append("sortOrder", sortOrder);
-    formData.append("isActive", String(isActive));
-    if (background) formData.append("background", background);
+    let backgroundPath: string | undefined;
+    if (background) {
+      const uploadToast = toast.loading("Upload immagine in corso...");
+      const upload = await uploadSiteAssetClient(background, "hero");
+      toast.dismiss(uploadToast);
+
+      if (!upload.ok) {
+        toast.error(upload.error);
+        setLoading(false);
+        return;
+      }
+
+      backgroundPath = upload.path;
+    }
+
+    const payload = {
+      productId,
+      productPosition,
+      titleOverride,
+      subtitleOverride,
+      ctaLabel,
+      sortOrder,
+      isActive,
+      backgroundPath,
+    };
 
     const url = slide ? "/api/admin/hero-slides/" + slide.id : "/api/admin/hero-slides";
     const method = slide ? "PUT" : "POST";
 
-    const response = await fetch(url, { method, body: formData });
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
@@ -110,6 +137,9 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
         currentUrl={slide?.background_path ? getSiteAssetUrl(slide.background_path) : null}
         onChange={setBackground}
       />
+      <p className="text-xs text-ink-500">
+        Supportati JPEG, PNG, GIF, WebP animato e altri formati immagine fino a {formatSiteAssetMaxSize()}.
+      </p>
       <Input label="Titolo override" value={titleOverride} onChange={(e) => setTitleOverride(e.target.value)} />
       <Input label="Sottotitolo override" value={subtitleOverride} onChange={(e) => setSubtitleOverride(e.target.value)} />
       <Input label="Testo pulsante" value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} />

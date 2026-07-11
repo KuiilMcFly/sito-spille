@@ -54,7 +54,7 @@ VALUES (
   'site-assets',
   'site-assets',
   true,
-  10485760,
+  52428800,
   ARRAY[
     'image/jpeg',
     'image/jpg',
