@@ -1,4 +1,5 @@
 import { createAdminClient, hasSupabaseAdminEnv } from "@/lib/supabase/admin";
+import { getSiteAssetUrl } from "@/lib/utils";
 import type { Json, SocialLinks } from "@/types/database";
 
 export async function getSiteSetting<T>(key: string, fallback: T): Promise<T> {
@@ -64,12 +65,16 @@ export async function getStoreBranding() {
   const taglineSetting = await getSiteSetting<{ text?: string }>("store_tagline", {
     text: DEFAULT_STORE_TAGLINE,
   });
+  const logoSetting = await getSiteSetting<{ path?: string | null }>("store_logo", {
+    path: null,
+  });
 
   const name = nameSetting.text || DEFAULT_STORE_NAME;
   const tagline = taglineSetting.text || DEFAULT_STORE_TAGLINE;
   const fullTitle = (name + " " + tagline).trim();
+  const logoUrl = logoSetting.path ? getSiteAssetUrl(logoSetting.path) : null;
 
-  return { name, tagline, fullTitle };
+  return { name, tagline, fullTitle, logoUrl };
 }
 
 export async function getSocialLinks(): Promise<SocialLinks> {

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
 import { getSiteAssetUrl } from "@/lib/utils";
+import { HERO_PRODUCT_POSITIONS, parseHeroProductPosition } from "@/lib/hero/constants";
+import type { HeroProductPosition } from "@/lib/hero/constants";
 import type { Tables } from "@/types/database";
 import toast from "react-hot-toast";
 
@@ -17,6 +19,9 @@ type HeroSlideFormProps = {
 export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
   const router = useRouter();
   const [productId, setProductId] = useState(slide?.product_id || products[0]?.id || "");
+  const [productPosition, setProductPosition] = useState<HeroProductPosition>(
+    parseHeroProductPosition(slide?.product_position)
+  );
   const [titleOverride, setTitleOverride] = useState(slide?.title_override || "");
   const [subtitleOverride, setSubtitleOverride] = useState(slide?.subtitle_override || "");
   const [ctaLabel, setCtaLabel] = useState(slide?.cta_label || "Scopri");
@@ -25,12 +30,21 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
   const [background, setBackground] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const canSubmit = products.length > 0 && Boolean(productId);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!canSubmit) {
+      toast.error("Crea almeno un prodotto attivo prima di salvare la slide");
+      return;
+    }
+
     setLoading(true);
 
     const formData = new FormData();
     formData.append("productId", productId);
+    formData.append("productPosition", productPosition);
     formData.append("titleOverride", titleOverride);
     formData.append("subtitleOverride", subtitleOverride);
     formData.append("ctaLabel", ctaLabel);
@@ -42,9 +56,10 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
     const method = slide ? "PUT" : "POST";
 
     const response = await fetch(url, { method, body: formData });
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      toast.error("Errore salvataggio");
+      toast.error(data.error || "Errore salvataggio");
       setLoading(false);
       return;
     }
@@ -54,10 +69,18 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
     router.refresh();
   }
 
+  if (products.length === 0) {
+    return (
+      <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+        Nessun prodotto disponibile. Crea almeno un prodotto attivo prima di configurare l&apos;hero.
+      </p>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="max-w-lg space-y-4">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-ink-200">Prodotto</label>
+        <label className="mb-1.5 block text-sm font-medium text-ink-200">Prodotto in evidenza</label>
         <select
           value={productId}
           onChange={(e) => setProductId(e.target.value)}
@@ -66,6 +89,18 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
         >
           {products.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-ink-200">Posizione prodotto</label>
+        <select
+          value={productPosition}
+          onChange={(e) => setProductPosition(parseHeroProductPosition(e.target.value))}
+          className="w-full rounded-xl border border-ink-600 bg-ink-900 px-4 py-2.5 text-white"
+        >
+          {HERO_PRODUCT_POSITIONS.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
       </div>
@@ -83,7 +118,7 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attiva
       </label>
-      <Button type="submit" disabled={loading}>
+      <Button type="submit" disabled={loading || !canSubmit}>
         {loading ? "Salvataggio..." : "Salva"}
       </Button>
     </form>

@@ -4,13 +4,15 @@ import { useState } from "react";
 import { DEFAULT_STORE_NAME, DEFAULT_STORE_TAGLINE } from "@/lib/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ImageUploadField } from "@/components/admin/image-upload-field";
 import toast from "react-hot-toast";
 
 type SettingsFormProps = {
   initial: Record<string, Record<string, unknown>>;
+  logoUrl?: string | null;
 };
 
-export function SettingsForm({ initial }: SettingsFormProps) {
+export function SettingsForm({ initial, logoUrl }: SettingsFormProps) {
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(
     String(initial.free_shipping_threshold?.amount || "35")
   );
@@ -25,7 +27,20 @@ export function SettingsForm({ initial }: SettingsFormProps) {
   const [facebook, setFacebook] = useState(String(initial.social_links?.facebook || ""));
   const [youtube, setYoutube] = useState(String(initial.social_links?.youtube || ""));
   const [threads, setThreads] = useState(String(initial.social_links?.threads || ""));
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  function handleLogoChange(file: File | null) {
+    setLogoFile(file);
+    if (file) setRemoveLogo(false);
+    if (!file && !logoUrl) setRemoveLogo(false);
+  }
+
+  function handleLogoClear() {
+    setLogoFile(null);
+    if (logoUrl) setRemoveLogo(true);
+  }
 
   async function saveSetting(key: string, value: Record<string, unknown>) {
     await fetch("/api/admin/settings", {
@@ -40,6 +55,19 @@ export function SettingsForm({ initial }: SettingsFormProps) {
     setLoading(true);
 
     try {
+      if (removeLogo) {
+        const logoRes = await fetch("/api/admin/settings/logo", { method: "DELETE" });
+        if (!logoRes.ok) throw new Error("Errore rimozione logo");
+      } else if (logoFile) {
+        const formData = new FormData();
+        formData.append("logo", logoFile);
+        const logoRes = await fetch("/api/admin/settings/logo", {
+          method: "POST",
+          body: formData,
+        });
+        if (!logoRes.ok) throw new Error("Errore upload logo");
+      }
+
       await saveSetting("free_shipping_threshold", {
         amount: parseFloat(freeShippingThreshold),
         currency: "EUR",
@@ -58,6 +86,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
         threads: threads.trim(),
       });
       toast.success("Impostazioni salvate");
+      window.location.reload();
     } catch {
       toast.error("Errore salvataggio");
     }
@@ -90,6 +119,17 @@ export function SettingsForm({ initial }: SettingsFormProps) {
       />
       <p className="text-xs text-ink-400">
         Appare in alto a sinistra su tutte le pagine del sito.
+      </p>
+      <ImageUploadField
+        label="Logo sito (header)"
+        currentUrl={removeLogo ? null : logoUrl}
+        onChange={(file) => {
+          if (file) handleLogoChange(file);
+          else handleLogoClear();
+        }}
+      />
+      <p className="text-xs text-ink-400">
+        Se non carichi un logo viene mostrata l&apos;icona predefinita. Consigliato quadrato o rotondo, min 200x200px.
       </p>
       <Input label="Titolo hero home" value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} />
       <Input label="Sottotitolo hero home" value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} />

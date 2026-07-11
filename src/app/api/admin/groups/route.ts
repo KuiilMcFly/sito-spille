@@ -17,10 +17,24 @@ export async function POST(request: NextRequest) {
   const coverFile = formData.get("cover") as File | null;
   const backgroundFile = formData.get("background") as File | null;
 
-  const coverPath = coverFile ? await uploadSiteAsset(coverFile, "groups/covers") : null;
-  const backgroundPath = backgroundFile
-    ? await uploadSiteAsset(backgroundFile, "groups/backgrounds")
-    : null;
+  let coverPath: string | null = null;
+  let backgroundPath: string | null = null;
+
+  if (coverFile && coverFile.size > 0) {
+    const upload = await uploadSiteAsset(coverFile, "groups/covers");
+    if (!upload.ok) {
+      return NextResponse.json({ error: "Upload cover: " + upload.error }, { status: 500 });
+    }
+    coverPath = upload.path;
+  }
+
+  if (backgroundFile && backgroundFile.size > 0) {
+    const upload = await uploadSiteAsset(backgroundFile, "groups/backgrounds");
+    if (!upload.ok) {
+      return NextResponse.json({ error: "Upload background: " + upload.error }, { status: 500 });
+    }
+    backgroundPath = upload.path;
+  }
 
   const supabase = createAdminClient();
   const { data, error } = await supabase

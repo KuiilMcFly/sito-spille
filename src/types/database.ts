@@ -414,6 +414,7 @@ export type Database = {
           id: string;
           is_active: boolean;
           product_id: string;
+          product_position: string;
           sort_order: number;
           subtitle_override: string | null;
           title_override: string | null;
@@ -426,6 +427,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           product_id: string;
+          product_position?: string;
           sort_order?: number;
           subtitle_override?: string | null;
           title_override?: string | null;
@@ -438,6 +440,7 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           product_id?: string;
+          product_position?: string;
           sort_order?: number;
           subtitle_override?: string | null;
           title_override?: string | null;

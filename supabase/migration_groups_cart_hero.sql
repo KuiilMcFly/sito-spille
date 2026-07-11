@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS hero_slides (
   cta_label text DEFAULT 'Scopri',
   sort_order int NOT NULL DEFAULT 0,
   is_active boolean NOT NULL DEFAULT true,
+  product_position text NOT NULL DEFAULT 'center' CHECK (product_position IN ('left', 'center', 'right')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );

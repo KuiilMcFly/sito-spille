@@ -4,6 +4,7 @@ import { OrdersToggle } from "@/components/admin/orders-toggle";
 import { ThemeSettingsForm } from "@/components/admin/theme-settings-form";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { DEFAULT_STORE_NAME, DEFAULT_STORE_TAGLINE } from "@/lib/settings";
+import { getSiteAssetUrl } from "@/lib/utils";
 
 export default async function AdminSettingsPage() {
   const supabase = createAdminClientIfConfigured();
@@ -16,6 +17,7 @@ export default async function AdminSettingsPage() {
     "hero_subtitle",
     "store_name",
     "store_tagline",
+    "store_logo",
     "social_links",
     "orders_open",
     "theme_colors",
@@ -30,6 +32,9 @@ export default async function AdminSettingsPage() {
   data?.forEach((row) => {
     initial[row.key] = row.value as Record<string, unknown>;
   });
+
+  const logoPath = String(initial.store_logo?.path || "");
+  const logoUrl = logoPath ? getSiteAssetUrl(logoPath) : null;
 
   return (
     <div>
@@ -46,7 +51,7 @@ export default async function AdminSettingsPage() {
             String(initial.store_tagline?.text || DEFAULT_STORE_TAGLINE)
           }
         />
-        <SettingsForm initial={initial} />
+        <SettingsForm initial={initial} logoUrl={logoUrl} />
       </div>
     </div>
   );

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatPrice, getStorageUrl, getSiteAssetUrl } from "@/lib/utils";
+import { parseHeroProductPosition } from "@/lib/hero/constants";
+import type { HeroProductPosition } from "@/lib/hero/constants";
 import type { HeroSlideWithProduct } from "@/types/database";
 
 type HeroCarouselProps = {
@@ -11,6 +13,12 @@ type HeroCarouselProps = {
   fallbackTitle: string;
   fallbackSubtitle: string;
 };
+
+function positionClass(position: HeroProductPosition): string {
+  if (position === "left") return "justify-start";
+  if (position === "right") return "justify-end";
+  return "justify-center";
+}
 
 export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCarouselProps) {
   const [index, setIndex] = useState(0);
@@ -65,48 +73,54 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
   const subtitle = slide.subtitle_override || product?.description || "";
   const ctaLabel = slide.cta_label || "Scopri";
   const productHref = product ? "/prodotti/" + product.slug : "/prodotti";
+  const position = parseHeroProductPosition(slide.product_position);
 
   return (
-    <section className="relative min-h-[420px] overflow-hidden md:min-h-[520px]">
+    <section className="relative min-h-[480px] overflow-hidden md:min-h-[560px]">
       <div
         className="absolute inset-0 bg-cover bg-center transition-all duration-700"
         style={{ backgroundImage: "url(" + bgUrl + ")" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-white/40" />
-      <div className="relative mx-auto flex max-w-6xl items-center gap-8 px-4 py-16 md:py-24">
-        <div className="flex-1">
-          <h1 className="font-display text-3xl font-bold text-ink-900 md:text-5xl">{title}</h1>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/50" />
+      <div
+        className={
+          "relative mx-auto flex min-h-[480px] max-w-6xl items-center px-4 py-12 md:min-h-[560px] md:py-16 " +
+          positionClass(position)
+        }
+      >
+        <div className="w-full max-w-sm rounded-3xl border border-white/20 bg-white/95 p-5 shadow-2xl backdrop-blur-md md:max-w-md md:p-7">
+          {productImageUrl && (
+            <div className="mb-5 overflow-hidden rounded-2xl bg-ink-100 shadow-lg">
+              <img
+                src={productImageUrl}
+                alt={product?.name || ""}
+                className="aspect-square w-full object-cover"
+              />
+            </div>
+          )}
+          <h1 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">{title}</h1>
           {subtitle && (
-            <p className="mt-4 max-w-lg text-lg text-ink-700 line-clamp-3">{subtitle}</p>
+            <p className="mt-3 text-sm text-ink-700 line-clamp-3 md:text-base">{subtitle}</p>
           )}
           {product && (
-            <p className="mt-2 text-xl font-semibold text-brand-600">
+            <p className="mt-3 text-xl font-semibold text-brand-600">
               {formatPrice(product.price)}
             </p>
           )}
           <Link
             href={productHref}
-            className="mt-6 inline-block rounded-full bg-brand-500 px-8 py-3 font-semibold text-white shadow-lg transition hover:bg-brand-600"
+            className="mt-5 inline-block rounded-full bg-brand-500 px-7 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600 md:text-base"
           >
             {ctaLabel}
           </Link>
         </div>
-        {productImageUrl && (
-          <div className="hidden flex-shrink-0 md:block">
-            <img
-              src={productImageUrl}
-              alt={product?.name || ""}
-              className="h-64 w-64 rounded-full object-cover shadow-2xl ring-4 ring-white"
-            />
-          </div>
-        )}
       </div>
       {slides.length > 1 && (
         <>
           <button
             type="button"
             onClick={prev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow hover:bg-white"
+            className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow hover:bg-white"
             aria-label="Slide precedente"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -114,12 +128,12 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
           <button
             type="button"
             onClick={next}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow hover:bg-white"
+            className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 shadow hover:bg-white"
             aria-label="Slide successiva"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
             {slides.map((_, i) => (
               <button
                 key={i}
@@ -127,7 +141,7 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
                 onClick={() => setIndex(i)}
                 className={
                   "h-2 w-2 rounded-full transition " +
-                  (i === index ? "bg-brand-500 w-6" : "bg-ink-300")
+                  (i === index ? "bg-white w-6" : "bg-white/50")
                 }
                 aria-label={"Slide " + (i + 1)}
               />

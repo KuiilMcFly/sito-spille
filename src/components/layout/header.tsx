@@ -37,9 +37,17 @@ export async function Header() {
     <header className="sticky top-0 z-50 border-b border-brand-100/80 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white pin-shadow">
-            <Sparkles className="h-5 w-5" />
-          </span>
+          {branding.logoUrl ? (
+            <img
+              src={branding.logoUrl}
+              alt={branding.name}
+              className="h-10 w-10 rounded-full object-cover pin-shadow"
+            />
+          ) : (
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white pin-shadow">
+              <Sparkles className="h-5 w-5" />
+            </span>
+          )}
           <div>
             <p className="font-display text-lg font-bold leading-tight text-ink-900">
               {branding.name}

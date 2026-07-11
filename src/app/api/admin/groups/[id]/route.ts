@@ -26,13 +26,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   };
 
   if (coverFile && coverFile.size > 0) {
-    const path = await uploadSiteAsset(coverFile, "groups/covers");
-    if (path) updates.cover_path = path;
+    const upload = await uploadSiteAsset(coverFile, "groups/covers");
+    if (!upload.ok) {
+      return NextResponse.json({ error: "Upload cover: " + upload.error }, { status: 500 });
+    }
+    updates.cover_path = upload.path;
   }
 
   if (backgroundFile && backgroundFile.size > 0) {
-    const path = await uploadSiteAsset(backgroundFile, "groups/backgrounds");
-    if (path) updates.background_path = path;
+    const upload = await uploadSiteAsset(backgroundFile, "groups/backgrounds");
+    if (!upload.ok) {
+      return NextResponse.json({ error: "Upload background: " + upload.error }, { status: 500 });
+    }
+    updates.background_path = upload.path;
   }
 
   const supabase = createAdminClient();
