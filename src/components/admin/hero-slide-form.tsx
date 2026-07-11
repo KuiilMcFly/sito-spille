@@ -40,8 +40,6 @@ export function HeroSlideForm({ slide, products, groups, typologies }: HeroSlide
   );
   const [loading, setLoading] = useState(false);
 
-  const hasFeature = Boolean(productId || groupId || typologyId);
-
   function handleProductChange(value: string) {
     setProductId(value);
     if (value) {
@@ -181,20 +179,21 @@ export function HeroSlideForm({ slide, products, groups, typologies }: HeroSlide
           Lascia tutto vuoto per mostrare solo lo sfondo, oppure usa titolo e sottotitolo personalizzati.
         </p>
       </div>
-      {hasFeature && (
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-ink-200">Posizione box</label>
-          <select
-            value={productPosition}
-            onChange={(e) => setProductPosition(parseHeroProductPosition(e.target.value))}
-            className="w-full rounded-xl border border-ink-600 bg-ink-900 px-4 py-2.5 text-white"
-          >
-            {HERO_PRODUCT_POSITIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </div>
-      )}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-ink-200">Posizione in evidenza</label>
+        <select
+          value={productPosition}
+          onChange={(e) => setProductPosition(parseHeroProductPosition(e.target.value))}
+          className="w-full rounded-xl border border-ink-600 bg-ink-900 px-4 py-2.5 text-white"
+        >
+          {HERO_PRODUCT_POSITIONS.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+        <p className="mt-1.5 text-xs text-ink-500">
+          Sinistra, centro o destra per il box di prodotto, gruppo o tipologia.
+        </p>
+      </div>
       <ImageUploadField
         label="Background hero"
         required={!slide}

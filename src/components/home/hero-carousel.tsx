@@ -93,7 +93,7 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
           positionClass(position)
         }
       >
-        <div className="w-full max-w-sm rounded-3xl border border-white/20 bg-white/95 p-5 shadow-2xl backdrop-blur-md md:max-w-md md:p-7">
+        <div className="max-w-sm shrink-0 rounded-3xl border border-white/20 bg-white/95 p-5 shadow-2xl backdrop-blur-md md:max-w-md md:p-7">
           {content.imageUrl && (
             <div className="mb-5 overflow-hidden rounded-2xl bg-ink-100 shadow-lg">
               <img
