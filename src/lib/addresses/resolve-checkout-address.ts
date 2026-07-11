@@ -3,13 +3,14 @@ import {
   shippingAddressFromRow,
   shippingAddressToJson,
   type ShippingAddressPayload,
+  type ShippingAddressRecord,
 } from "@/lib/addresses/types";
 
 export async function resolveCheckoutShippingAddress(input: {
   userId?: string | null;
   addressId?: string | null;
   shippingAddress?: ShippingAddressPayload | null;
-}): Promise<Record<string, unknown> | null> {
+}): Promise<ShippingAddressRecord | null> {
   if (input.addressId && input.userId) {
     const supabase = createAdminClient();
     const { data } = await supabase

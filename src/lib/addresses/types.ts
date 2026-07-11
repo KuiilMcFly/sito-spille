@@ -10,6 +10,18 @@ export type ShippingAddressPayload = {
   country: string;
 };
 
+export type ShippingAddressRecord = {
+  label: string;
+  full_name: string | null;
+  phone: string | null;
+  street_line1: string;
+  street_line2: string | null;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+};
+
 export function formatShippingAddressLine(address: ShippingAddressPayload): string {
   const parts = [
     address.streetLine1,
@@ -45,7 +57,7 @@ export function shippingAddressFromRow(row: {
   };
 }
 
-export function shippingAddressToJson(address: ShippingAddressPayload) {
+export function shippingAddressToJson(address: ShippingAddressPayload): ShippingAddressRecord {
   return {
     label: address.label || "Spedizione",
     full_name: address.fullName || null,

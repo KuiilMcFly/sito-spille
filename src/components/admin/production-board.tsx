@@ -32,7 +32,7 @@ export function ProductionBoard({ items }: ProductionBoardProps) {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 print:hidden">
+      <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-4">
         <p className="text-sm text-ink-400">{items.length} righe in coda</p>
         <button
           type="button"

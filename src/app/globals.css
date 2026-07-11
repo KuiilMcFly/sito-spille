@@ -366,7 +366,7 @@ body {
   aside,
   header,
   footer,
-  .print\\:hidden {
+  .no-print {
     display: none !important;
   }
 
