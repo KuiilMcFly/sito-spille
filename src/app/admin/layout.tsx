@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { hasSupabaseAdminEnv } from "@/lib/supabase/admin";
-import { AdminSetupNotice } from "@/components/admin/admin-setup-notice";
+import {
+  AdminSetupNotice,
+  getSupabaseEnvStatus,
+} from "@/components/admin/admin-setup-notice";
 
 export const dynamic = "force-dynamic";
 
@@ -31,9 +34,13 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   if (!hasSupabaseAdminEnv()) {
+    const envStatus = getSupabaseEnvStatus();
     return (
       <div className="flex min-h-screen items-center justify-center bg-ink-900 p-6">
-        <AdminSetupNotice />
+        <AdminSetupNotice
+          missing={envStatus.missing}
+          present={envStatus.present}
+        />
       </div>
     );
   }
