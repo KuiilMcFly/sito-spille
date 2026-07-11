@@ -14,6 +14,7 @@ import {
   Home,
   ExternalLink,
   Percent,
+  Factory,
 } from "lucide-react";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { hasSupabaseAdminEnv } from "@/lib/supabase/admin";
@@ -34,6 +35,7 @@ const navItems = [
   { href: "/admin/taglie", label: "Taglie", icon: Ruler },
   { href: "/admin/spedizioni", label: "Spedizioni", icon: Truck },
   { href: "/admin/sconti", label: "Sconti e bundle", icon: Percent },
+  { href: "/admin/produzione", label: "Produzione", icon: Factory },
   { href: "/admin/ordini", label: "Ordini", icon: ShoppingCart },
   { href: "/admin/pagamenti", label: "Pagamenti", icon: CreditCard },
   { href: "/admin/impostazioni", label: "Impostazioni", icon: Settings },

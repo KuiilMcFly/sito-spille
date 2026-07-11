@@ -9,8 +9,14 @@ export const metadata = {
   description: "Personalizza la tua spilla rotonda con foto o disegno.",
 };
 
-export default async function CreatePage() {
+type Props = {
+  searchParams: Promise<{ draft?: string }>;
+};
+
+export default async function CreatePage({ searchParams }: Props) {
+  const { draft } = await searchParams;
   const supabase = await createClientIfConfigured();
+  const user = await getServerUser();
 
   const [sizesResult, ordersOpen, theme] = await Promise.all([
     supabase
@@ -35,6 +41,8 @@ export default async function CreatePage() {
         ordersOpen={ordersOpen}
         previewFillColor={theme.brand100}
         previewStrokeColor={theme.brand500}
+        loggedIn={Boolean(user)}
+        initialDraftId={draft || null}
       />
     </div>
   );

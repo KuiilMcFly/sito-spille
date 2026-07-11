@@ -432,6 +432,101 @@ export type Database = {
         };
         Relationships: [];
       };
+      customizer_drafts: {
+        Row: {
+          id: string;
+          user_id: string;
+          pin_size_id: string;
+          name: string | null;
+          source_path: string;
+          preview_path: string | null;
+          customization_data: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          pin_size_id: string;
+          name?: string | null;
+          source_path: string;
+          preview_path?: string | null;
+          customization_data?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          pin_size_id?: string;
+          name?: string | null;
+          source_path?: string;
+          preview_path?: string | null;
+          customization_data?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customizer_drafts_pin_size_id_fkey";
+            columns: ["pin_size_id"];
+            isOneToOne: false;
+            referencedRelation: "pin_sizes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_addresses: {
+        Row: {
+          id: string;
+          user_id: string;
+          label: string;
+          full_name: string | null;
+          phone: string | null;
+          street_line1: string;
+          street_line2: string | null;
+          city: string;
+          province: string;
+          postal_code: string;
+          country: string;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          label?: string;
+          full_name?: string | null;
+          phone?: string | null;
+          street_line1: string;
+          street_line2?: string | null;
+          city: string;
+          province: string;
+          postal_code: string;
+          country?: string;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          label?: string;
+          full_name?: string | null;
+          phone?: string | null;
+          street_line1?: string;
+          street_line2?: string | null;
+          city?: string;
+          province?: string;
+          postal_code?: string;
+          country?: string;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       hero_slides: {
         Row: {
           background_path: string;
@@ -670,6 +765,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      wishlist_shares: {
+        Row: {
+          user_id: string;
+          share_token: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          share_token: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          share_token?: string;
+          created_at?: string;
+        };
+        Relationships: [];
       };
       product_typologies: {
         Row: {
@@ -917,6 +1030,22 @@ export type CustomizationData = {
   offsetY: number;
   rotation: number;
   finishEffect?: FinishEffect;
+};
+
+export type CustomizerDraftWithSize = Tables<"customizer_drafts"> & {
+  pin_sizes: Tables<"pin_sizes"> | null;
+};
+
+export type ShippingAddressJson = {
+  label?: string;
+  full_name?: string | null;
+  phone?: string | null;
+  street_line1: string;
+  street_line2?: string | null;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
 };
 
 export type SocialLinks = {

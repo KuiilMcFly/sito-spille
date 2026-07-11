@@ -9,18 +9,21 @@ import { ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-messages";
 import type { ProductWithImages } from "@/types/database";
 import { Package, ShoppingCart } from "lucide-react";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { ShareButton } from "@/components/ui/share-button";
 import toast from "react-hot-toast";
 
 type ProductDetailProps = {
   product: ProductWithImages;
   ordersOpen?: boolean;
   loggedIn?: boolean;
+  shareUrl?: string;
 };
 
 export function ProductDetailClient({
   product,
   ordersOpen = true,
   loggedIn = false,
+  shareUrl,
 }: ProductDetailProps) {
   const { addCatalogItem } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -99,7 +102,16 @@ export function ProductDetailClient({
             <ShoppingCart className="mr-2 h-4 w-4" />
             Aggiungi al carrello
           </Button>
-          <WishlistButton productId={product.id} loggedIn={loggedIn} />
+          <div className="flex flex-wrap gap-3">
+            <WishlistButton productId={product.id} loggedIn={loggedIn} />
+            {shareUrl && (
+              <ShareButton
+                title={product.name}
+                text={"Guarda " + product.name}
+                url={shareUrl}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

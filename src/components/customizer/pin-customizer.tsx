@@ -13,12 +13,18 @@ import { ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-messages";
 import type { CustomizationData, FinishEffect, Tables } from "@/types/database";
 import { Loader2, RotateCw, ShoppingCart, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+  CustomizerDraftToolbar,
+  readFileAsDataUrl,
+} from "@/components/customizer/customizer-draft-toolbar";
 
 type PinCustomizerProps = {
   sizes: Tables<"pin_sizes">[];
   ordersOpen?: boolean;
   previewFillColor?: string;
   previewStrokeColor?: string;
+  loggedIn?: boolean;
+  initialDraftId?: string | null;
 };
 
 const DEFAULT_CUSTOM: CustomizationData = {
@@ -42,11 +48,14 @@ export function PinCustomizer({
   ordersOpen = true,
   previewFillColor = "#ffe0ef",
   previewStrokeColor = "#f72585",
+  loggedIn = false,
+  initialDraftId = null,
 }: PinCustomizerProps) {
   const { addCustomItem } = useCart();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const originalFileRef = useRef<File | null>(null);
 
   const [selectedSizeId, setSelectedSizeId] = useState(sizes[0]?.id || "");
   const [quantity, setQuantity] = useState(1);
@@ -54,6 +63,8 @@ export function PinCustomizer({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [draftLoading, setDraftLoading] = useState(Boolean(initialDraftId));
 
   const selectedSize = sizes.find((s) => s.id === selectedSizeId);
   const unitPrice = selectedSize ? getCustomPrice(selectedSize) : 0;
@@ -104,6 +115,84 @@ export function PinCustomizer({
     drawCanvas();
   }, [drawCanvas]);
 
+  useEffect(() => {
+    if (!initialDraftId) return;
+
+    async function loadDraft() {
+      setDraftLoading(true);
+      try {
+        const response = await fetch("/api/customizer/drafts/" + initialDraftId);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Bozza non trovata");
+
+        const sourceUrl = data.sourceUrl as string | null;
+        if (!sourceUrl) throw new Error("Immagine bozza non disponibile");
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("Errore caricamento bozza"));
+          img.src = sourceUrl;
+        });
+
+        imageRef.current = img;
+        originalFileRef.current = null;
+        setSelectedSizeId(data.pin_size_id);
+        setCustomization((data.customization_data as CustomizationData) || DEFAULT_CUSTOM);
+        setImageLoaded(true);
+        toast.success("Bozza caricata");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Errore bozza");
+      } finally {
+        setDraftLoading(false);
+      }
+    }
+
+    loadDraft();
+  }, [initialDraftId]);
+
+  async function handleSaveDraft(name: string | null) {
+    if (!imageLoaded || !imageRef.current) {
+      throw new Error("Carica un immagine prima di salvare");
+    }
+    if (!selectedSizeId) {
+      throw new Error("Seleziona una taglia");
+    }
+
+    setSavingDraft(true);
+    try {
+      drawCanvas();
+      await waitForCanvasFrame();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const canvas = canvasRef.current;
+      if (!canvas) throw new Error("Anteprima non disponibile");
+
+      const previewBase64 = exportCanvasImage(canvas);
+      let sourceBase64 = previewBase64;
+      if (originalFileRef.current) {
+        sourceBase64 = await readFileAsDataUrl(originalFileRef.current);
+      }
+
+      const response = await fetch("/api/customizer/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          pinSizeId: selectedSizeId,
+          sourceBase64,
+          previewBase64,
+          customization,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Errore salvataggio");
+    } finally {
+      setSavingDraft(false);
+    }
+  }
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -122,6 +211,7 @@ export function PinCustomizer({
     setImageUploading(true);
     setImageLoaded(false);
     imageRef.current = null;
+    originalFileRef.current = file;
 
     try {
       const img = await prepareImageFromFile(file);
@@ -189,7 +279,7 @@ export function PinCustomizer({
     <div className="grid gap-10 lg:grid-cols-2">
       <div className="space-y-6">
         <div className="relative flex flex-col items-center rounded-3xl border border-brand-100 bg-white p-8 pin-shadow">
-          {imageUploading && (
+          {(imageUploading || draftLoading) && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-white/80">
               <Loader2 className="h-10 w-10 animate-spin text-brand-500" />
             </div>
@@ -249,7 +339,15 @@ export function PinCustomizer({
         <p className="text-sm text-ink-700">
           Aggiungi piu spille al carrello prima di pagare.{" "}
           <Link href="/carrello" className="text-brand-600 underline">Vai al carrello</Link>
+          {" · "}
+          <Link href="/taglie" className="text-brand-600 underline">Confronta taglie</Link>
         </p>
+
+        <CustomizerDraftToolbar
+          loggedIn={loggedIn}
+          saving={savingDraft}
+          onSaveDraft={handleSaveDraft}
+        />
 
         <div>
           <label className="mb-2 block text-sm font-medium text-ink-700">Taglia spilla</label>

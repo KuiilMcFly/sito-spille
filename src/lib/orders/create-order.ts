@@ -6,7 +6,12 @@ import {
 import { buildOrderLines } from "@/lib/orders/build-cart-lines";
 import { applyBestPromotion } from "@/lib/promotions/apply";
 import { loadActivePromotions } from "@/lib/promotions/load";
+import {
+  maybeSaveCheckoutAddress,
+  resolveCheckoutShippingAddress,
+} from "@/lib/addresses/resolve-checkout-address";
 import type { CheckoutItemPayload } from "@/lib/cart/types";
+import type { ShippingAddressPayload } from "@/lib/addresses/types";
 
 export type CreateOrderInput = {
   items: CheckoutItemPayload[];
@@ -17,6 +22,9 @@ export type CreateOrderInput = {
   shippingMethodId: string;
   userId?: string | null;
   promotionCode?: string | null;
+  shippingAddress?: ShippingAddressPayload | null;
+  shippingAddressId?: string | null;
+  saveAddress?: boolean;
 };
 
 export async function createMultiItemOrder(input: CreateOrderInput) {
@@ -39,6 +47,22 @@ export async function createMultiItemOrder(input: CreateOrderInput) {
   const discountedSubtotal = applied.subtotalAfterDiscount;
   const totalAmount = calculateOrderTotal(discountedSubtotal, shipping.cost);
 
+  const shippingAddressJson = await resolveCheckoutShippingAddress({
+    userId: input.userId,
+    addressId: input.shippingAddressId,
+    shippingAddress: input.shippingAddress,
+  });
+
+  if (!shippingAddressJson) {
+    throw new Error("Indirizzo di spedizione obbligatorio");
+  }
+
+  await maybeSaveCheckoutAddress({
+    userId: input.userId,
+    saveAddress: input.saveAddress,
+    shippingAddress: input.shippingAddress,
+  });
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -58,6 +82,7 @@ export async function createMultiItemOrder(input: CreateOrderInput) {
       currency: "EUR",
       user_id: input.userId || null,
       shipping_method_id: input.shippingMethodId,
+      shipping_address: shippingAddressJson,
     })
     .select()
     .single();

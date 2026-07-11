@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
       notes,
       shippingMethodId,
       userId: user?.id || null,
-      promotionCode: body.promotionCode || null,
+      promotionCode: promotionCode || null,
+      shippingAddress: body.shippingAddress || null,
+      shippingAddressId: body.shippingAddressId || null,
+      saveAddress: Boolean(body.saveAddress),
     });
 
     return NextResponse.json(result);

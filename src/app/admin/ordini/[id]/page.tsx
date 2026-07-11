@@ -77,6 +77,17 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                   <dd className="mt-1 text-ink-200">{order.customer_notes}</dd>
                 </div>
               )}
+              {order.shipping_address && typeof order.shipping_address === "object" && (
+                <div>
+                  <dt className="text-ink-400">Indirizzo spedizione</dt>
+                  <dd className="mt-1 text-ink-200">
+                    {String((order.shipping_address as { street_line1?: string }).street_line1 || "")}
+                    {", "}
+                    {String((order.shipping_address as { postal_code?: string }).postal_code || "")}{" "}
+                    {String((order.shipping_address as { city?: string }).city || "")}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
 

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { formatPrice, ORDER_STATUS_LABELS } from "@/lib/utils";
 import { Badge, getOrderStatusVariant } from "@/components/ui/badge";
-import { Package, Settings, LogOut, Heart } from "lucide-react";
+import { Package, Settings, LogOut, Heart, MapPin, FileImage } from "lucide-react";
 
 export const metadata = { title: "Il mio account" };
 
@@ -51,7 +51,7 @@ export default async function AccountPage() {
         </form>
       </div>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/account/ordini"
           className="flex items-center gap-4 rounded-2xl border border-brand-100 bg-white p-6 transition hover:shadow-lg"
@@ -70,6 +70,26 @@ export default async function AccountPage() {
           <div>
             <p className="font-semibold text-ink-900">Preferiti</p>
             <p className="text-sm text-ink-400">Prodotti salvati</p>
+          </div>
+        </Link>
+        <Link
+          href="/account/bozze"
+          className="flex items-center gap-4 rounded-2xl border border-brand-100 bg-white p-6 transition hover:shadow-lg"
+        >
+          <FileImage className="h-8 w-8 text-brand-500" />
+          <div>
+            <p className="font-semibold text-ink-900">Bozze customizer</p>
+            <p className="text-sm text-ink-400">Riprendi le personalizzazioni</p>
+          </div>
+        </Link>
+        <Link
+          href="/account/indirizzi"
+          className="flex items-center gap-4 rounded-2xl border border-brand-100 bg-white p-6 transition hover:shadow-lg"
+        >
+          <MapPin className="h-8 w-8 text-brand-500" />
+          <div>
+            <p className="font-semibold text-ink-900">Indirizzi</p>
+            <p className="text-sm text-ink-400">Spedizione rapida al checkout</p>
           </div>
         </Link>
         <Link

@@ -2,8 +2,11 @@ import { notFound } from "next/navigation";
 import { createClientIfConfigured } from "@/lib/supabase/server";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { getServerUser } from "@/lib/supabase/server";
+import { getStorageUrl } from "@/lib/utils";
+import { buildPageMetadata } from "@/lib/metadata/page-metadata";
 import { ProductDetailClient } from "@/components/catalog/product-detail-client";
 import type { ProductWithImages } from "@/types/database";
+import { getSiteUrl } from "@/lib/site-url";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -20,16 +23,24 @@ export async function generateMetadata({ params }: Props) {
   try {
     const { data: product } = await supabase
       .from("products")
-      .select("name, seo_title, seo_description")
+      .select("name, slug, seo_title, seo_description, product_images(*)")
       .eq("slug", slug)
       .single();
 
     if (!product) return { title: "Prodotto non trovato" };
 
-    return {
-      title: product.seo_title || product.name,
-      description: product.seo_description || product.name,
-    };
+    const primaryImage = product.product_images?.find((img) => img.is_primary);
+    const imageUrl = primaryImage ? getStorageUrl(primaryImage.storage_path) : null;
+    const title = product.seo_title || product.name;
+    const description = product.seo_description || product.name;
+
+    return buildPageMetadata({
+      title,
+      description,
+      path: "/prodotti/" + product.slug,
+      imageUrl,
+      type: "website",
+    });
   } catch {
     return { title: "Prodotto" };
   }
@@ -63,6 +74,7 @@ export default async function ProductDetailPage({ params }: Props) {
         product={product as unknown as ProductWithImages}
         ordersOpen={ordersOpen}
         loggedIn={Boolean(user)}
+        shareUrl={getSiteUrl() + "/prodotti/" + product.slug}
       />
     </div>
   );

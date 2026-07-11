@@ -5,10 +5,16 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PayPalCheckout } from "@/components/payments/paypal-checkout";
+import {
+  CheckoutAddressSection,
+  EMPTY_SHIPPING_ADDRESS,
+  validateShippingAddress,
+} from "@/components/cart/checkout-address-section";
 import { useCart } from "@/lib/cart/cart-context";
 import { formatPrice } from "@/lib/utils";
 import { ensureOrdersOpen } from "@/lib/orders/orders-open-client";
 import { ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-messages";
+import type { ShippingAddressPayload } from "@/lib/addresses/types";
 import type { Tables } from "@/types/database";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -20,6 +26,8 @@ type CheckoutClientProps = {
   loggedInEmail?: string | null;
   loggedInPhone?: string | null;
   loggedInName?: string | null;
+  loggedIn?: boolean;
+  savedAddresses?: Tables<"customer_addresses">[];
 };
 
 export function CheckoutClient({
@@ -29,6 +37,8 @@ export function CheckoutClient({
   loggedInEmail,
   loggedInPhone,
   loggedInName,
+  loggedIn = false,
+  savedAddresses = [],
 }: CheckoutClientProps) {
   const router = useRouter();
   const { items, subtotal, clearCart } = useCart();
@@ -43,6 +53,28 @@ export function CheckoutClient({
   const [promotionName, setPromotionName] = useState<string | null>(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [orderPreparing, setOrderPreparing] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddressPayload>(EMPTY_SHIPPING_ADDRESS);
+  const defaultAddress = savedAddresses.find((a) => a.is_default) || savedAddresses[0];
+  const [selectedAddressId, setSelectedAddressId] = useState<string | "new">(
+    defaultAddress ? defaultAddress.id : "new"
+  );
+  const [saveAddress, setSaveAddress] = useState(false);
+
+  useEffect(() => {
+    if (defaultAddress) {
+      setShippingAddress({
+        label: defaultAddress.label,
+        fullName: defaultAddress.full_name || undefined,
+        phone: defaultAddress.phone || undefined,
+        streetLine1: defaultAddress.street_line1,
+        streetLine2: defaultAddress.street_line2 || undefined,
+        city: defaultAddress.city,
+        province: defaultAddress.province,
+        postalCode: defaultAddress.postal_code,
+        country: defaultAddress.country,
+      });
+    }
+  }, [defaultAddress?.id]);
 
   const selectedShipping = shippingMethods.find((m) => m.id === shippingMethodId);
   const baseShippingCost = selectedShipping?.price || 0;
@@ -148,6 +180,10 @@ export function CheckoutClient({
       toast.error("Seleziona spedizione");
       throw new Error("Spedizione mancante");
     }
+    if (!validateShippingAddress(shippingAddress)) {
+      toast.error("Compila l indirizzo di spedizione");
+      throw new Error("Indirizzo mancante");
+    }
 
     setOrderPreparing(true);
     try {
@@ -163,6 +199,9 @@ export function CheckoutClient({
         shippingMethodId,
         promotionCode: promoCode.trim() || null,
         items: buildCheckoutItems(),
+        shippingAddress,
+        shippingAddressId: selectedAddressId !== "new" ? selectedAddressId : null,
+        saveAddress: loggedIn && selectedAddressId === "new" ? saveAddress : false,
       };
 
       const response = await fetch("/api/orders/checkout", {
@@ -227,6 +266,18 @@ export function CheckoutClient({
         <Input label="Email *" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input label="Telefono *" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} />
         <Input label="Nome" value={name} onChange={(e) => setName(e.target.value)} />
+
+        <CheckoutAddressSection
+          loggedIn={loggedIn}
+          initialAddresses={savedAddresses}
+          shippingAddress={shippingAddress}
+          setShippingAddress={setShippingAddress}
+          selectedAddressId={selectedAddressId}
+          setSelectedAddressId={setSelectedAddressId}
+          saveAddress={saveAddress}
+          setSaveAddress={setSaveAddress}
+        />
+
         <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
         <div>
@@ -281,7 +332,13 @@ export function CheckoutClient({
         )}
 
         <PayPalCheckout
-          disabled={!ordersOpen || orderPreparing || !email.trim() || !phone.trim()}
+          disabled={
+            !ordersOpen ||
+            orderPreparing ||
+            !email.trim() ||
+            !phone.trim() ||
+            !validateShippingAddress(shippingAddress)
+          }
           ordersOpen={ordersOpen}
           onPrepareOrder={prepareOrder}
           onPaid={(orderNumber) => {

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPrice, getStorageUrl } from "@/lib/utils";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { WishlistShareButton } from "@/components/wishlist/wishlist-share-button";
 import type { ProductWithImages } from "@/types/database";
 
 export const metadata = { title: "Preferiti" };
@@ -31,6 +32,10 @@ export default async function WishlistPage() {
         Torna all account
       </Link>
       <h1 className="font-display mt-4 text-3xl font-bold text-ink-900">Preferiti</h1>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <WishlistShareButton />
+      </div>
 
       {items.length === 0 ? (
         <p className="mt-8 text-ink-500">

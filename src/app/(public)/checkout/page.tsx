@@ -3,6 +3,8 @@ import { getFreeShippingThreshold, getShippingMethods } from "@/lib/orders/prici
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { CheckoutClient } from "@/components/cart/checkout-client";
 
+import type { Tables } from "@/types/database";
+
 export const metadata = { title: "Checkout" };
 
 export default async function CheckoutPage() {
@@ -15,17 +17,31 @@ export default async function CheckoutPage() {
     areOrdersOpen(),
   ]);
 
-  let profile = null;
+  let profile: Tables<"customer_profiles"> | null = null;
+  let savedAddresses: Tables<"customer_addresses">[] = [];
+
+  async function loadSavedAddresses(userId: string) {
+    if (!supabase) return [];
+    const { data } = await supabase
+      .from("customer_addresses")
+      .select("*")
+      .eq("user_id", userId)
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: false });
+    return data || [];
+  }
+
   if (user && supabase) {
     try {
-      const { data } = await supabase
-        .from("customer_profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      const [{ data }, addresses] = await Promise.all([
+        supabase.from("customer_profiles").select("*").eq("id", user.id).single(),
+        loadSavedAddresses(user.id),
+      ]);
       profile = data;
+      savedAddresses = addresses;
     } catch {
       profile = null;
+      savedAddresses = [];
     }
   }
 
@@ -37,9 +53,11 @@ export default async function CheckoutPage() {
           shippingMethods={shippingMethods}
           freeShippingThreshold={freeShippingThreshold}
           ordersOpen={ordersOpen}
+          loggedIn={Boolean(user)}
           loggedInEmail={user?.email}
           loggedInPhone={profile?.phone}
           loggedInName={profile?.full_name}
+          savedAddresses={savedAddresses}
         />
       </div>
     </div>
