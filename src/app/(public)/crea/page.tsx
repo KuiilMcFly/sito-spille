@@ -1,8 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
 import { getFreeShippingThreshold, getShippingMethods } from "@/lib/orders/pricing";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { getThemeColors } from "@/lib/theme/get-theme";
 import { PinCustomizer } from "@/components/customizer/pin-customizer";
+import type { Tables } from "@/types/database";
 
 export const metadata = {
   title: "Crea la tua spilla",
@@ -10,26 +11,32 @@ export const metadata = {
 };
 
 export default async function CreatePage() {
-  const supabase = await createClient();
+  const supabase = await createClientIfConfigured();
+  const user = await getServerUser();
 
-  const [{ data: sizes }, shippingMethods, freeShippingThreshold, ordersOpen, theme, { data: { user } }] =
+  const [sizesResult, shippingMethods, freeShippingThreshold, ordersOpen, theme] =
     await Promise.all([
-      supabase.from("pin_sizes").select("*").eq("is_active", true).order("sort_order"),
+      supabase
+        ? supabase.from("pin_sizes").select("*").eq("is_active", true).order("sort_order")
+        : Promise.resolve({ data: [] as Tables<"pin_sizes">[] }),
       getShippingMethods(),
       getFreeShippingThreshold(),
       areOrdersOpen(),
       getThemeColors(),
-      supabase.auth.getUser(),
     ]);
 
   let profile = null;
-  if (user) {
-    const { data } = await supabase
-      .from("customer_profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-    profile = data;
+  if (user && supabase) {
+    try {
+      const { data } = await supabase
+        .from("customer_profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      profile = data;
+    } catch {
+      profile = null;
+    }
   }
 
   return (
@@ -43,7 +50,7 @@ export default async function CreatePage() {
         </p>
       </div>
       <PinCustomizer
-        sizes={sizes || []}
+        sizes={sizesResult.data || []}
         shippingMethods={shippingMethods}
         freeShippingThreshold={freeShippingThreshold}
         ordersOpen={ordersOpen}

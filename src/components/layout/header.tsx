@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
 import { Sparkles, User } from "lucide-react";
 
 const navLinks = [
@@ -10,17 +10,23 @@ const navLinks = [
 ];
 
 export async function Header() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
+  const user = await getServerUser();
   let isAdmin = false;
+
   if (user) {
-    const { data: adminProfile } = await supabase
-      .from("admin_profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    isAdmin = adminProfile?.role === "admin";
+    const supabase = await createClientIfConfigured();
+    if (supabase) {
+      try {
+        const { data: adminProfile } = await supabase
+          .from("admin_profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        isAdmin = adminProfile?.role === "admin";
+      } catch {
+        isAdmin = false;
+      }
+    }
   }
 
   return (

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
 import { getFreeShippingThreshold, getShippingMethods } from "@/lib/orders/pricing";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { ProductDetailClient } from "@/components/catalog/product-detail-client";
@@ -11,26 +11,40 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClient();
-  const { data: product } = await supabase
-    .from("products")
-    .select("name, seo_title, seo_description")
-    .eq("slug", slug)
-    .single();
+  const supabase = await createClientIfConfigured();
 
-  if (!product) return { title: "Prodotto non trovato" };
+  if (!supabase) {
+    return { title: "Prodotto" };
+  }
 
-  return {
-    title: product.seo_title || product.name,
-    description: product.seo_description || product.name,
-  };
+  try {
+    const { data: product } = await supabase
+      .from("products")
+      .select("name, seo_title, seo_description")
+      .eq("slug", slug)
+      .single();
+
+    if (!product) return { title: "Prodotto non trovato" };
+
+    return {
+      title: product.seo_title || product.name,
+      description: product.seo_description || product.name,
+    };
+  } catch {
+    return { title: "Prodotto" };
+  }
 }
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = await createClientIfConfigured();
+  const user = await getServerUser();
 
-  const [{ data: product }, shippingMethods, freeShippingThreshold, ordersOpen, { data: { user } }] =
+  if (!supabase) {
+    notFound();
+  }
+
+  const [productResult, shippingMethods, freeShippingThreshold, ordersOpen] =
     await Promise.all([
       supabase
         .from("products")
@@ -41,15 +55,23 @@ export default async function ProductDetailPage({ params }: Props) {
       getShippingMethods(),
       getFreeShippingThreshold(),
       areOrdersOpen(),
-      supabase.auth.getUser(),
     ]);
 
+  const product = productResult.data;
   if (!product) notFound();
 
   let profile = null;
   if (user) {
-    const { data } = await supabase.from("customer_profiles").select("*").eq("id", user.id).single();
-    profile = data;
+    try {
+      const { data } = await supabase
+        .from("customer_profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      profile = data;
+    } catch {
+      profile = null;
+    }
   }
 
   return (

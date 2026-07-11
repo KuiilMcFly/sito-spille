@@ -9,7 +9,9 @@ import {
   LogOut,
   Truck,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClientIfConfigured } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -26,10 +28,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
+  const supabase = await createClientIfConfigured();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
   return (
     <div className="flex min-h-screen bg-ink-900">

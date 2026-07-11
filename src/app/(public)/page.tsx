@@ -1,20 +1,28 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createClientIfConfigured } from "@/lib/supabase/server";
 import { getPublicSettings } from "@/lib/settings";
 import { ProductGrid } from "@/components/catalog/product-grid";
 import { Sparkles, Palette, Truck, Shield } from "lucide-react";
 import type { ProductWithImages } from "@/types/database";
 
 export default async function HomePage() {
-  const supabase = await createClient();
   const settings = await getPublicSettings();
+  let products: ProductWithImages[] = [];
 
-  const { data: products } = await supabase
-    .from("products")
-    .select("*, product_images(*), pin_sizes(*)")
-    .eq("is_active", true)
-    .eq("is_featured", true)
-    .order("sort_order");
+  const supabase = await createClientIfConfigured();
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from("products")
+        .select("*, product_images(*), pin_sizes(*)")
+        .eq("is_active", true)
+        .eq("is_featured", true)
+        .order("sort_order");
+      products = (data as unknown as ProductWithImages[]) || [];
+    } catch {
+      products = [];
+    }
+  }
 
   const heroTitle =
     (settings.hero_title as { text?: string })?.text ||
@@ -62,7 +70,7 @@ export default async function HomePage() {
           Scopri le spille pronte da ordinare o lasciati ispirare.
         </p>
         <div className="mt-8">
-          <ProductGrid products={(products as unknown as ProductWithImages[]) || []} />
+          <ProductGrid products={products} />
         </div>
       </section>
 
