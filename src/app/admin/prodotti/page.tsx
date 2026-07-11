@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AdminRowActions } from "@/components/admin/admin-row-actions";
 import { Plus } from "lucide-react";
 
 export default async function AdminProductsPage() {
@@ -48,9 +49,11 @@ export default async function AdminProductsPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={"/admin/prodotti/" + product.id} className="text-brand-400 hover:underline">
-                    Modifica
-                  </Link>
+                  <AdminRowActions
+                    editHref={"/admin/prodotti/" + product.id}
+                    deleteApiUrl={"/api/admin/products/" + product.id}
+                    resourceLabel={"il prodotto \"" + product.name + "\""}
+                  />
                 </td>
               </tr>
             ))}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DeleteResourceButton } from "@/components/admin/delete-resource-button";
 import { slugify } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 import toast from "react-hot-toast";
@@ -66,9 +67,18 @@ export function TypologyForm({ typology }: TypologyFormProps) {
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attiva
       </label>
-      <Button type="submit" disabled={loading}>
-        {loading ? "Salvataggio..." : "Salva"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Salvataggio..." : "Salva"}
+        </Button>
+        {typology && (
+          <DeleteResourceButton
+            apiUrl={"/api/admin/typologies/" + typology.id}
+            redirectTo="/admin/tipologie"
+            resourceLabel={"la tipologia \"" + typology.name + "\""}
+          />
+        )}
+      </div>
     </form>
   );
 }

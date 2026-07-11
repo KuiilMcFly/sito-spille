@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AdminRowActions } from "@/components/admin/admin-row-actions";
 import { Plus } from "lucide-react";
 
 export default async function AdminSizesPage() {
@@ -46,9 +47,11 @@ export default async function AdminSizesPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={"/admin/taglie/" + size.id} className="text-brand-400 hover:underline">
-                    Modifica
-                  </Link>
+                  <AdminRowActions
+                    editHref={"/admin/taglie/" + size.id}
+                    deleteApiUrl={"/api/admin/sizes/" + size.id}
+                    resourceLabel={"la taglia \"" + size.name + "\""}
+                  />
                 </td>
               </tr>
             ))}

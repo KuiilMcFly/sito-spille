@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
+import { AdminRowActions } from "@/components/admin/admin-row-actions";
 import { Plus } from "lucide-react";
 
 export default async function AdminHeroPage() {
@@ -49,9 +50,11 @@ export default async function AdminHeroPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={"/admin/hero/" + s.id} className="text-brand-400 hover:underline">
-                    Modifica
-                  </Link>
+                  <AdminRowActions
+                    editHref={"/admin/hero/" + s.id}
+                    deleteApiUrl={"/api/admin/hero-slides/" + s.id}
+                    resourceLabel={"la slide hero \"" + ((s.products as { name?: string } | null)?.name || "senza nome") + "\""}
+                  />
                 </td>
               </tr>
             ))}

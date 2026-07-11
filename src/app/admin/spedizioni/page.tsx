@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AdminRowActions } from "@/components/admin/admin-row-actions";
 import { Plus } from "lucide-react";
 
 export default async function AdminShippingPage() {
@@ -51,9 +52,11 @@ export default async function AdminShippingPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={"/admin/spedizioni/" + m.id} className="text-brand-400 hover:underline">
-                    Modifica
-                  </Link>
+                  <AdminRowActions
+                    editHref={"/admin/spedizioni/" + m.id}
+                    deleteApiUrl={"/api/admin/shipping/" + m.id}
+                    resourceLabel={"il metodo di spedizione \"" + m.name + "\""}
+                  />
                 </td>
               </tr>
             ))}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { DeleteResourceButton } from "@/components/admin/delete-resource-button";
 import { slugify, getSiteAssetUrl } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 import toast from "react-hot-toast";
@@ -80,9 +81,18 @@ export function GroupForm({ group }: GroupFormProps) {
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attivo
       </label>
-      <Button type="submit" disabled={loading}>
-        {loading ? "Salvataggio..." : "Salva"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Salvataggio..." : "Salva"}
+        </Button>
+        {group && (
+          <DeleteResourceButton
+            apiUrl={"/api/admin/groups/" + group.id}
+            redirectTo="/admin/gruppi"
+            resourceLabel={"il gruppo \"" + group.name + "\""}
+          />
+        )}
+      </div>
     </form>
   );
 }

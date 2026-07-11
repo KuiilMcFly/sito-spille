@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploadField } from "@/components/admin/image-upload-field";
+import { DeleteResourceButton } from "@/components/admin/delete-resource-button";
 import { slugify, getStorageUrl } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 import toast from "react-hot-toast";
@@ -71,9 +72,18 @@ export function SizeForm({ size }: SizeFormProps) {
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attiva
       </label>
-      <Button type="submit" disabled={loading}>
-        {loading ? "Salvataggio..." : "Salva"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Salvataggio..." : "Salva"}
+        </Button>
+        {size && (
+          <DeleteResourceButton
+            apiUrl={"/api/admin/sizes/" + size.id}
+            redirectTo="/admin/taglie"
+            resourceLabel={"la taglia \"" + size.name + "\""}
+          />
+        )}
+      </div>
     </form>
   );
 }
@@ -207,9 +217,18 @@ export function ProductForm({
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attivo
       </label>
-      <Button type="submit" disabled={loading}>
-        {loading ? "Salvataggio..." : "Salva"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Salvataggio..." : "Salva"}
+        </Button>
+        {product && (
+          <DeleteResourceButton
+            apiUrl={"/api/admin/products/" + product.id}
+            redirectTo="/admin/prodotti"
+            resourceLabel={"il prodotto \"" + product.name + "\""}
+          />
+        )}
+      </div>
     </form>
   );
 }

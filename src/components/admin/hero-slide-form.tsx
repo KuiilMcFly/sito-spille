@@ -10,6 +10,7 @@ import { HERO_PRODUCT_POSITIONS, parseHeroProductPosition } from "@/lib/hero/con
 import type { HeroProductPosition } from "@/lib/hero/constants";
 import { formatSiteAssetMaxSize } from "@/lib/images/content-type";
 import { uploadSiteAssetClient } from "@/lib/site-assets/upload-client";
+import { DeleteResourceButton } from "@/components/admin/delete-resource-button";
 import type { Tables } from "@/types/database";
 import toast from "react-hot-toast";
 
@@ -148,9 +149,18 @@ export function HeroSlideForm({ slide, products }: HeroSlideFormProps) {
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attiva
       </label>
-      <Button type="submit" disabled={loading || !canSubmit}>
-        {loading ? "Salvataggio..." : "Salva"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={loading || !canSubmit}>
+          {loading ? "Salvataggio..." : "Salva"}
+        </Button>
+        {slide && (
+          <DeleteResourceButton
+            apiUrl={"/api/admin/hero-slides/" + slide.id}
+            redirectTo="/admin/hero"
+            resourceLabel="questa slide hero"
+          />
+        )}
+      </div>
     </form>
   );
 }

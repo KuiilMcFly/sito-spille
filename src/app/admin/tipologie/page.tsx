@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
+import { AdminRowActions } from "@/components/admin/admin-row-actions";
 import { Plus } from "lucide-react";
 
 export default async function AdminTypologiesPage() {
@@ -49,9 +50,11 @@ export default async function AdminTypologiesPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={"/admin/tipologie/" + t.id} className="text-brand-400 hover:underline">
-                    Modifica
-                  </Link>
+                  <AdminRowActions
+                    editHref={"/admin/tipologie/" + t.id}
+                    deleteApiUrl={"/api/admin/typologies/" + t.id}
+                    resourceLabel={"la tipologia \"" + t.name + "\""}
+                  />
                 </td>
               </tr>
             ))}

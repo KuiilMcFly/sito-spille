@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DeleteResourceButton } from "@/components/admin/delete-resource-button";
 import type { Tables } from "@/types/database";
 import toast from "react-hot-toast";
 
@@ -78,9 +79,18 @@ export function ShippingForm({ method }: ShippingFormProps) {
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         Attiva
       </label>
-      <Button type="submit" disabled={loading}>
-        {loading ? "Salvataggio..." : "Salva"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" disabled={loading}>
+          {loading ? "Salvataggio..." : "Salva"}
+        </Button>
+        {method && (
+          <DeleteResourceButton
+            apiUrl={"/api/admin/shipping/" + method.id}
+            redirectTo="/admin/spedizioni"
+            resourceLabel={"il metodo di spedizione \"" + method.name + "\""}
+          />
+        )}
+      </div>
     </form>
   );
 }
