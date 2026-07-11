@@ -78,12 +78,11 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
 
   return (
     <section className="relative min-h-[480px] overflow-hidden md:min-h-[560px]">
-      <div
-        className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-700"
-        style={{
-          backgroundImage: "url(" + bgUrl + ")",
-          backgroundPosition: bgPosition,
-        }}
+      <img
+        src={bgUrl}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover transition-all duration-700"
+        style={{ objectPosition: bgPosition }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/50" />
       {showBox && (

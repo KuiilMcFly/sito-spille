@@ -21,9 +21,19 @@ export function getPreviewAspectClass(ratio: ImageFrameRatio): string {
 }
 
 export function isAnimatedImageType(mimeType: string, fileName: string): boolean {
-  if (mimeType === "image/gif") return true;
+  if (mimeType === "image/gif" || mimeType === "image/webp") return true;
   const lower = fileName.toLowerCase();
-  return lower.endsWith(".gif");
+  return lower.endsWith(".gif") || lower.endsWith(".webp");
+}
+
+export function shouldKeepOriginalUpload(
+  allowKeepOriginal: boolean | undefined,
+  mimeType: string,
+  fileName: string,
+  sourceIsFile: boolean
+): boolean {
+  if (!allowKeepOriginal || !sourceIsFile) return false;
+  return isAnimatedImageType(mimeType, fileName);
 }
 
 export function clampPan(

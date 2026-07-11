@@ -12,6 +12,7 @@ import {
   loadImageElement,
   objectPositionFromTransform,
   renderFocusedImageFile,
+  shouldKeepOriginalUpload,
   type ImageFrameRatio,
   type ImageTransform,
 } from "@/lib/images/image-focus";
@@ -93,7 +94,13 @@ export function ImagePositionEditor({
   }, [frame.width]);
 
   const isAnimated = isAnimatedImageType(sourceType, sourceName);
-  const canKeepOriginal = Boolean(allowKeepOriginal && isAnimated && source instanceof File);
+  const keepOriginalUpload = shouldKeepOriginalUpload(
+    allowKeepOriginal,
+    sourceType,
+    sourceName,
+    source instanceof File
+  );
+  const useOriginalOnConfirm = Boolean(allowKeepOriginal && source instanceof File);
   const preferPng = sourceType === "image/png";
 
   useEffect(() => {
@@ -120,13 +127,13 @@ export function ImagePositionEditor({
   }, [source, frame.width, frame.height, initialObjectPosition]);
 
   const updatePreview = useCallback(async () => {
-    if (!image) return;
+    if (!image || useOriginalOnConfirm) return;
     const url = await renderFocusedPreviewDataUrlInternal(image, frame.width, frame.height, transform, preferPng);
     setPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return url;
     });
-  }, [image, frame.width, frame.height, transform, preferPng]);
+  }, [image, frame.width, frame.height, transform, preferPng, useOriginalOnConfirm]);
 
   useEffect(() => {
     if (!image) return;
@@ -192,6 +199,14 @@ export function ImagePositionEditor({
       panY: centerY - newDrawH / 2,
       scale: value,
     });
+  }
+
+  async function handlePrimaryConfirm() {
+    if (useOriginalOnConfirm) {
+      await handleConfirmOriginal();
+      return;
+    }
+    await handleConfirmCrop();
   }
 
   async function handleConfirmCrop() {
@@ -262,6 +277,15 @@ export function ImagePositionEditor({
   }
 
   const isExistingSource = typeof source === "string";
+  const livePreviewPosition = image
+    ? objectPositionFromTransform(
+        transform,
+        frame.width,
+        frame.height,
+        image.width,
+        image.height
+      )
+    : "50% 50%";
   const coverScale = image
     ? Math.max(frame.width / image.width, frame.height / image.height) * transform.scale
     : 1;
@@ -334,8 +358,17 @@ export function ImagePositionEditor({
                 "overflow-hidden rounded-xl border border-brand-500/40 bg-white " + aspectClass
               }
             >
-              {previewUrl ? (
-                <img src={previewUrl} alt="" className="h-full w-full object-cover" />
+              {previewUrl || (useOriginalOnConfirm && image) ? (
+                useOriginalOnConfirm && image ? (
+                  <img
+                    src={image.src}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: livePreviewPosition }}
+                  />
+                ) : (
+                  <img src={previewUrl || ""} alt="" className="h-full w-full object-cover" />
+                )
               ) : (
                 <div className="flex h-full min-h-[120px] items-center justify-center text-sm text-ink-400">
                   Anteprima...
@@ -361,9 +394,9 @@ export function ImagePositionEditor({
           />
         </div>
 
-        {canKeepOriginal && (
+        {keepOriginalUpload && (
           <p className="mt-3 text-xs text-amber-300">
-            File animato rilevato: puoi mantenere l&apos;animazione salvando l&apos;originale con la posizione scelta.
+            File animato rilevato: verra caricato l&apos;originale mantenendo GIF o WebP animata.
           </p>
         )}
 
@@ -376,13 +409,18 @@ export function ImagePositionEditor({
               {saving ? "Salvataggio..." : "Salva solo posizione"}
             </Button>
           )}
-          {canKeepOriginal && (
+          {!useOriginalOnConfirm && keepOriginalUpload && (
             <Button type="button" variant="secondary" onClick={handleConfirmOriginal} disabled={saving || !image}>
               {saving ? "Salvataggio..." : "Mantieni originale"}
             </Button>
           )}
-          <Button type="button" onClick={handleConfirmCrop} disabled={saving || !image}>
-            {saving ? "Salvataggio..." : "Conferma posizione"}
+          {!useOriginalOnConfirm && (
+            <Button type="button" variant="secondary" onClick={handleConfirmCrop} disabled={saving || !image}>
+              {saving ? "Salvataggio..." : "Ritaglia statico"}
+            </Button>
+          )}
+          <Button type="button" onClick={handlePrimaryConfirm} disabled={saving || !image}>
+            {saving ? "Salvataggio..." : useOriginalOnConfirm ? "Conferma con animazione" : "Conferma posizione"}
           </Button>
         </div>
       </div>

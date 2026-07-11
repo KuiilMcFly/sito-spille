@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Upload, X, Move } from "lucide-react";
-import { SITE_ASSET_IMAGE_ACCEPT } from "@/lib/images/content-type";
+import { SITE_ASSET_IMAGE_ACCEPT, resolveImageContentType } from "@/lib/images/content-type";
 import {
   getPreviewAspectClass,
   type ImageFrameRatio,
@@ -71,6 +71,8 @@ export function ImageUploadField({
     setPreview(url);
     setMeta(nextMeta);
     setDisplayPosition(nextMeta.objectPosition);
+    setEditorName(file.name);
+    setEditorType(file.type || resolveImageContentType(file.name));
     onChange(file, nextMeta);
     setEditorSource(null);
   }
@@ -138,7 +140,12 @@ export function ImageUploadField({
                     return;
                   }
                   if (currentUrl) {
-                    openEditor(currentUrl, "immagine-esistente.jpg", "image/jpeg");
+                    const nameFromUrl = currentUrl.split("?")[0].split("/").pop() || "immagine.jpg";
+                    openEditor(
+                      currentUrl,
+                      nameFromUrl,
+                      resolveImageContentType(nameFromUrl)
+                    );
                   }
                 }}
                 className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-ink-900/90 px-2 py-1.5 text-xs text-white hover:bg-brand-600"
