@@ -10,6 +10,8 @@ import {
   Truck,
 } from "lucide-react";
 import { createClientIfConfigured } from "@/lib/supabase/server";
+import { hasSupabaseAdminEnv } from "@/lib/supabase/admin";
+import { AdminSetupNotice } from "@/components/admin/admin-setup-notice";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +30,14 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  if (!hasSupabaseAdminEnv()) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ink-900 p-6">
+        <AdminSetupNotice />
+      </div>
+    );
+  }
+
   const supabase = await createClientIfConfigured();
   const {
     data: { user },

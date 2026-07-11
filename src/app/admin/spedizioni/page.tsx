@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
 export default async function AdminShippingPage() {
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) return null;
   const { data: methods } = await supabase
     .from("shipping_methods")
     .select("*")

@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { ShippingForm } from "@/components/admin/shipping-form";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function EditShippingPage({ params }: Props) {
   const { id } = await params;
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) return null;
   const { data: method } = await supabase.from("shipping_methods").select("*").eq("id", id).single();
   if (!method) notFound();
 

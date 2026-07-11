@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice, ORDER_STATUS_LABELS } from "@/lib/utils";
 import { Badge, getOrderStatusVariant } from "@/components/ui/badge";
 
 export default async function AdminOrdersPage() {
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) return null;
   const { data: orders } = await supabase
     .from("orders")
     .select("*")

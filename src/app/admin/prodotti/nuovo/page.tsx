@@ -1,8 +1,9 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { ProductForm } from "@/components/admin/forms";
 
 export default async function NewProductPage() {
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) return null;
   const { data: sizes } = await supabase.from("pin_sizes").select("*").order("sort_order");
 
   return (

@@ -1,46 +1,72 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice, ORDER_STATUS_LABELS } from "@/lib/utils";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { Badge, getOrderStatusVariant } from "@/components/ui/badge";
+import type { Tables } from "@/types/database";
 import Link from "next/link";
 import { Package, ShoppingCart, Euro, Clock, Lock } from "lucide-react";
 
 export default async function AdminDashboard() {
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) {
+    return null;
+  }
 
-  const [
-    { count: totalOrders },
-    { count: pendingOrders },
-    { data: recentOrders },
-    { data: paidOrders },
-    { count: activeProducts },
-    ordersOpen,
-  ] = await Promise.all([
-    supabase.from("orders").select("*", { count: "exact", head: true }),
-    supabase
-      .from("orders")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "paid"),
-    supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase.from("orders").select("total_amount").eq("status", "paid"),
-    supabase
-      .from("products")
-      .select("*", { count: "exact", head: true })
-      .eq("is_active", true),
-    areOrdersOpen(),
-  ]);
+  let totalOrders = 0;
+  let pendingOrders = 0;
+  let recentOrders: Tables<"orders">[] = [];
+  let paidOrders: { total_amount: number }[] = [];
+  let activeProducts = 0;
+  let ordersOpen = true;
+
+  try {
+    const [
+      totalOrdersResult,
+      pendingOrdersResult,
+      recentOrdersResult,
+      paidOrdersResult,
+      activeProductsResult,
+      ordersOpenResult,
+    ] = await Promise.all([
+      supabase.from("orders").select("*", { count: "exact", head: true }),
+      supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "paid"),
+      supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase.from("orders").select("total_amount").eq("status", "paid"),
+      supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+        .eq("is_active", true),
+      areOrdersOpen(),
+    ]);
+
+    totalOrders = totalOrdersResult.count || 0;
+    pendingOrders = pendingOrdersResult.count || 0;
+    recentOrders = recentOrdersResult.data || [];
+    paidOrders = paidOrdersResult.data || [];
+    activeProducts = activeProductsResult.count || 0;
+    ordersOpen = ordersOpenResult;
+  } catch {
+    return (
+      <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-6 text-red-100">
+        Errore caricamento dashboard. Controlla le credenziali Supabase su Vercel.
+      </div>
+    );
+  }
 
   const revenue =
-    paidOrders?.reduce((sum, o) => sum + Number(o.total_amount), 0) || 0;
+    paidOrders.reduce((sum, o) => sum + Number(o.total_amount), 0) || 0;
 
   const stats = [
-    { label: "Ordini totali", value: totalOrders || 0, icon: ShoppingCart },
-    { label: "Da accettare", value: pendingOrders || 0, icon: Clock },
-    { label: "Prodotti attivi", value: activeProducts || 0, icon: Package },
+    { label: "Ordini totali", value: totalOrders, icon: ShoppingCart },
+    { label: "Da accettare", value: pendingOrders, icon: Clock },
+    { label: "Prodotti attivi", value: activeProducts, icon: Package },
     { label: "Ricavi (pagati)", value: formatPrice(revenue), icon: Euro },
   ];
 
@@ -102,7 +128,7 @@ export default async function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-700">
-              {recentOrders?.map((order) => (
+              {recentOrders.map((order) => (
                 <tr key={order.id} className="bg-ink-900">
                   <td className="px-4 py-3">
                     <Link

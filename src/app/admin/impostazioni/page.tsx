@@ -1,11 +1,12 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { OrdersToggle } from "@/components/admin/orders-toggle";
 import { ThemeSettingsForm } from "@/components/admin/theme-settings-form";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 
 export default async function AdminSettingsPage() {
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) return null;
   const keys = [
     "free_shipping_threshold",
     "store_email",

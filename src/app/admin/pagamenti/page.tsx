@@ -1,9 +1,10 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { formatPrice, PAYMENT_STATUS_LABELS } from "@/lib/utils";
 import Link from "next/link";
 
 export default async function AdminPaymentsPage() {
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) return null;
 
   const { data: payments } = await supabase
     .from("payments")

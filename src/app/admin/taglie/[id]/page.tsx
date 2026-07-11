@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClientIfConfigured } from "@/lib/supabase/admin";
 import { SizeForm } from "@/components/admin/forms";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function EditSizePage({ params }: Props) {
   const { id } = await params;
-  const supabase = createAdminClient();
+  const supabase = createAdminClientIfConfigured();
+  if (!supabase) return null;
   const { data: size } = await supabase.from("pin_sizes").select("*").eq("id", id).single();
 
   if (!size) notFound();
