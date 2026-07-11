@@ -9,10 +9,13 @@ export default async function EditHeroSlidePage({ params }: Props) {
   const supabase = createAdminClientIfConfigured();
   if (!supabase) return null;
 
-  const [{ data: slide }, { data: products }] = await Promise.all([
-    supabase.from("hero_slides").select("*").eq("id", id).single(),
-    supabase.from("products").select("*").eq("is_active", true).order("name"),
-  ]);
+  const [{ data: slide }, { data: products }, { data: groups }, { data: typologies }] =
+    await Promise.all([
+      supabase.from("hero_slides").select("*").eq("id", id).single(),
+      supabase.from("products").select("*").eq("is_active", true).order("name"),
+      supabase.from("product_groups").select("*").eq("is_active", true).order("name"),
+      supabase.from("product_typologies").select("*").eq("is_active", true).order("name"),
+    ]);
 
   if (!slide) notFound();
 
@@ -20,7 +23,12 @@ export default async function EditHeroSlidePage({ params }: Props) {
     <div>
       <h1 className="text-3xl font-bold text-white">Modifica slide hero</h1>
       <div className="mt-6">
-        <HeroSlideForm slide={slide} products={products || []} />
+        <HeroSlideForm
+          slide={slide}
+          products={products || []}
+          groups={groups || []}
+          typologies={typologies || []}
+        />
       </div>
     </div>
   );

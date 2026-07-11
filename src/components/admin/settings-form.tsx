@@ -122,6 +122,7 @@ export function SettingsForm({ initial, logoUrl }: SettingsFormProps) {
       </p>
       <ImageUploadField
         label="Logo sito (header)"
+        aspectRatio="square"
         currentUrl={removeLogo ? null : logoUrl}
         onChange={(file) => {
           if (file) handleLogoChange(file);

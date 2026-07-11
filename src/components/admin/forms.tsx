@@ -212,8 +212,9 @@ export function ProductForm({
       <ImageUploadField
         label="Foto prodotto"
         required={!product}
+        aspectRatio="square"
         currentUrl={primaryImageUrl}
-        onChange={setImage}
+        onChange={(file) => setImage(file)}
       />
       <label className="flex items-center gap-2 text-sm text-ink-200">
         <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />

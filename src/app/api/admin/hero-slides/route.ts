@@ -11,10 +11,6 @@ export async function POST(request: NextRequest) {
   const payload = await parseHeroSlidePayload(request);
   if (payload instanceof NextResponse) return payload;
 
-  if (!payload.productId) {
-    return NextResponse.json({ error: "Seleziona un prodotto" }, { status: 400 });
-  }
-
   const backgroundPath = validateHeroBackgroundPath(payload.backgroundPath);
   if (!backgroundPath) {
     return NextResponse.json({ error: "Background obbligatorio" }, { status: 400 });
@@ -24,7 +20,9 @@ export async function POST(request: NextRequest) {
   const { data, error } = await supabase
     .from("hero_slides")
     .insert({
-      product_id: payload.productId,
+      product_id: payload.productId || null,
+      product_group_id: payload.groupId || null,
+      product_typology_id: payload.typologyId || null,
       background_path: backgroundPath,
       title_override: payload.titleOverride || null,
       subtitle_override: payload.subtitleOverride || null,
@@ -32,6 +30,7 @@ export async function POST(request: NextRequest) {
       sort_order: parseInt(payload.sortOrder) || 0,
       is_active: payload.isActive,
       product_position: payload.productPosition,
+      background_position: payload.backgroundPosition || "50% 50%",
     })
     .select()
     .single();

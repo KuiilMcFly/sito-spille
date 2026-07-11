@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS product_typologies (
 
 CREATE TABLE IF NOT EXISTS hero_slides (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  product_id uuid REFERENCES products(id) ON DELETE SET NULL,
   background_path text NOT NULL,
   title_override text,
   subtitle_override text,

@@ -15,18 +15,17 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   const payload = await parseHeroSlidePayload(request);
   if (payload instanceof NextResponse) return payload;
 
-  if (!payload.productId) {
-    return NextResponse.json({ error: "Seleziona un prodotto" }, { status: 400 });
-  }
-
   const updates: TablesUpdate<"hero_slides"> = {
-    product_id: payload.productId,
+    product_id: payload.productId || null,
+    product_group_id: payload.groupId || null,
+    product_typology_id: payload.typologyId || null,
     title_override: payload.titleOverride || null,
     subtitle_override: payload.subtitleOverride || null,
     cta_label: payload.ctaLabel || "Scopri",
     sort_order: parseInt(payload.sortOrder) || 0,
     is_active: payload.isActive,
     product_position: payload.productPosition,
+    background_position: payload.backgroundPosition || "50% 50%",
     updated_at: new Date().toISOString(),
   };
 

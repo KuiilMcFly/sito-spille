@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { formatPrice, getStorageUrl, getSiteAssetUrl } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, Tags } from "lucide-react";
+import { getSiteAssetUrl } from "@/lib/utils";
 import { parseHeroProductPosition } from "@/lib/hero/constants";
 import type { HeroProductPosition } from "@/lib/hero/constants";
-import type { HeroSlideWithProduct } from "@/types/database";
+import { resolveHeroSlideContent } from "@/lib/hero/resolve-slide-content";
+import type { HeroSlideWithRelations } from "@/types/database";
 
 type HeroCarouselProps = {
-  slides: HeroSlideWithProduct[];
+  slides: HeroSlideWithRelations[];
   fallbackTitle: string;
   fallbackSubtitle: string;
 };
@@ -65,23 +66,27 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
   }
 
   const slide = slides[index];
-  const product = slide.products;
-  const primaryImage = product?.product_images?.find((img) => img.is_primary);
-  const productImageUrl = primaryImage ? getStorageUrl(primaryImage.storage_path) : null;
+  const content = resolveHeroSlideContent(slide);
   const bgUrl = getSiteAssetUrl(slide.background_path);
-  const title = slide.title_override || product?.name || "";
-  const subtitle = slide.subtitle_override || product?.description || "";
+  const bgPosition = slide.background_position || "50% 50%";
   const ctaLabel = slide.cta_label || "Scopri";
-  const productHref = product ? "/prodotti/" + product.slug : "/prodotti";
   const position = parseHeroProductPosition(slide.product_position);
+  const showBox =
+    Boolean(content.kind) ||
+    Boolean(content.title.trim()) ||
+    Boolean(content.subtitle.trim());
 
   return (
     <section className="relative min-h-[480px] overflow-hidden md:min-h-[560px]">
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700"
-        style={{ backgroundImage: "url(" + bgUrl + ")" }}
+        className="absolute inset-0 bg-cover bg-no-repeat transition-all duration-700"
+        style={{
+          backgroundImage: "url(" + bgUrl + ")",
+          backgroundPosition: bgPosition,
+        }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/35 to-black/50" />
+      {showBox && (
       <div
         className={
           "relative mx-auto flex min-h-[480px] max-w-6xl items-center px-4 py-12 md:min-h-[560px] md:py-16 " +
@@ -89,32 +94,38 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
         }
       >
         <div className="w-full max-w-sm rounded-3xl border border-white/20 bg-white/95 p-5 shadow-2xl backdrop-blur-md md:max-w-md md:p-7">
-          {productImageUrl && (
+          {content.imageUrl && (
             <div className="mb-5 overflow-hidden rounded-2xl bg-ink-100 shadow-lg">
               <img
-                src={productImageUrl}
-                alt={product?.name || ""}
+                src={content.imageUrl}
+                alt={content.title}
                 className="aspect-square w-full object-cover"
               />
             </div>
           )}
-          <h1 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">{title}</h1>
-          {subtitle && (
-            <p className="mt-3 text-sm text-ink-700 line-clamp-3 md:text-base">{subtitle}</p>
+          {!content.imageUrl && content.kind === "typology" && (
+            <div className="mb-5 flex aspect-square items-center justify-center rounded-2xl bg-gradient-to-br from-brand-50 to-accent-50 shadow-lg">
+              <Tags className="h-16 w-16 text-brand-400" />
+            </div>
           )}
-          {product && (
-            <p className="mt-3 text-xl font-semibold text-brand-600">
-              {formatPrice(product.price)}
-            </p>
+          {content.title && (
+            <h1 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">{content.title}</h1>
+          )}
+          {content.subtitle && (
+            <p className="mt-3 text-sm text-ink-700 line-clamp-3 md:text-base">{content.subtitle}</p>
+          )}
+          {content.priceLabel && (
+            <p className="mt-3 text-xl font-semibold text-brand-600">{content.priceLabel}</p>
           )}
           <Link
-            href={productHref}
+            href={content.href}
             className="mt-5 inline-block rounded-full bg-brand-500 px-7 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600 md:text-base"
           >
             {ctaLabel}
           </Link>
         </div>
       </div>
+      )}
       {slides.length > 1 && (
         <>
           <button

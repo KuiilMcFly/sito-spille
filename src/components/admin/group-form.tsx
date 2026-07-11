@@ -70,13 +70,15 @@ export function GroupForm({ group }: GroupFormProps) {
       <ImageUploadField
         label="Cover del gruppo"
         required={!group}
+        aspectRatio="4/3"
         currentUrl={group?.cover_path ? getSiteAssetUrl(group.cover_path) : null}
-        onChange={setCover}
+        onChange={(file) => setCover(file)}
       />
       <ImageUploadField
         label="Background pagina gruppo"
+        aspectRatio="16/9"
         currentUrl={group?.background_path ? getSiteAssetUrl(group.background_path) : null}
-        onChange={setBackground}
+        onChange={(file) => setBackground(file)}
       />
       <Input label="Ordine" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
       <label className="flex items-center gap-2 text-sm text-ink-200">

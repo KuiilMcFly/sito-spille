@@ -412,12 +412,15 @@ export type Database = {
       hero_slides: {
         Row: {
           background_path: string;
+          background_position: string;
           created_at: string;
           cta_label: string | null;
           id: string;
           is_active: boolean;
-          product_id: string;
+          product_group_id: string | null;
+          product_id: string | null;
           product_position: string;
+          product_typology_id: string | null;
           sort_order: number;
           subtitle_override: string | null;
           title_override: string | null;
@@ -425,12 +428,15 @@ export type Database = {
         };
         Insert: {
           background_path: string;
+          background_position?: string;
           created_at?: string;
           cta_label?: string | null;
           id?: string;
           is_active?: boolean;
-          product_id: string;
+          product_group_id?: string | null;
+          product_id?: string | null;
           product_position?: string;
+          product_typology_id?: string | null;
           sort_order?: number;
           subtitle_override?: string | null;
           title_override?: string | null;
@@ -438,12 +444,15 @@ export type Database = {
         };
         Update: {
           background_path?: string;
+          background_position?: string;
           created_at?: string;
           cta_label?: string | null;
           id?: string;
           is_active?: boolean;
-          product_id?: string;
+          product_group_id?: string | null;
+          product_id?: string | null;
           product_position?: string;
+          product_typology_id?: string | null;
           sort_order?: number;
           subtitle_override?: string | null;
           title_override?: string | null;
@@ -451,10 +460,24 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "hero_slides_product_group_id_fkey";
+            columns: ["product_group_id"];
+            isOneToOne: false;
+            referencedRelation: "product_groups";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "hero_slides_product_id_fkey";
             columns: ["product_id"];
             isOneToOne: false;
             referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "hero_slides_product_typology_id_fkey";
+            columns: ["product_typology_id"];
+            isOneToOne: false;
+            referencedRelation: "product_typologies";
             referencedColumns: ["id"];
           },
         ];
@@ -716,9 +739,13 @@ export type ProductWithImages = Tables<"products"> & {
   product_typologies?: Tables<"product_typologies"> | null;
 };
 
-export type HeroSlideWithProduct = Tables<"hero_slides"> & {
+export type HeroSlideWithRelations = Tables<"hero_slides"> & {
   products: ProductWithImages | null;
+  product_groups: Tables<"product_groups"> | null;
+  product_typologies: Tables<"product_typologies"> | null;
 };
+
+export type HeroSlideWithProduct = HeroSlideWithRelations;
 
 export type FinishEffect =
   | "glossy"

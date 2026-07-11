@@ -11,14 +11,14 @@ import {
   loadHomeTypologiesPreview,
 } from "@/lib/catalog/filter-entities";
 import { Palette, Truck, Shield } from "lucide-react";
-import type { HeroSlideWithProduct } from "@/types/database";
+import type { HeroSlideWithRelations } from "@/types/database";
 
 const HOME_PREVIEW_LIMIT = 6;
 
 export default async function HomePage() {
   const settings = await getPublicSettings();
   let featuredItems: Awaited<ReturnType<typeof loadFeaturedItems>> = [];
-  let slides: HeroSlideWithProduct[] = [];
+  let slides: HeroSlideWithRelations[] = [];
   let groupsPreview: Awaited<ReturnType<typeof loadHomeGroupsPreview>> = [];
   let typologiesPreview: Awaited<ReturnType<typeof loadHomeTypologiesPreview>> = [];
 
@@ -29,14 +29,14 @@ export default async function HomePage() {
         loadFeaturedItems(supabase),
         supabase
           .from("hero_slides")
-          .select("*, products(*, product_images(*), pin_sizes(*))")
+          .select("*, products(*, product_images(*), pin_sizes(*)), product_groups(*), product_typologies(*)")
           .eq("is_active", true)
           .order("sort_order"),
         loadHomeGroupsPreview(supabase, HOME_PREVIEW_LIMIT),
         loadHomeTypologiesPreview(supabase, HOME_PREVIEW_LIMIT),
       ]);
       featuredItems = featuredRes;
-      slides = (slidesRes.data as unknown as HeroSlideWithProduct[]) || [];
+      slides = (slidesRes.data as unknown as HeroSlideWithRelations[]) || [];
       groupsPreview = groupsRes;
       typologiesPreview = typologiesRes;
     } catch {
