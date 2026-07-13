@@ -135,6 +135,16 @@ body {
   transform: translateY(0);
 }
 
+.hero-carousel {
+  height: 500px;
+}
+
+@media (min-width: 768px) {
+  .hero-carousel {
+    height: 580px;
+  }
+}
+
 .hero-slide-layer {
   opacity: 0;
   z-index: 0;

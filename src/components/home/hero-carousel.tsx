@@ -92,8 +92,8 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
 
   if (slides.length === 0) {
     return (
-      <section className="gradient-hero px-4 py-20 md:py-28">
-        <div className="hero-fallback-enter mx-auto max-w-6xl text-center">
+      <section className="hero-carousel gradient-hero px-4">
+        <div className="hero-fallback-enter mx-auto flex h-full max-w-6xl flex-col items-center justify-center text-center">
           <h1 className="font-display mt-6 text-4xl font-bold leading-tight text-ink-900 md:text-6xl">
             {fallbackTitle}
           </h1>
@@ -122,7 +122,7 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
 
   return (
     <section
-      className="relative min-h-[480px] overflow-hidden md:min-h-[560px]"
+      className="hero-carousel relative overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -167,14 +167,14 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
       {showBox && (
         <div
           className={
-            "relative z-[3] mx-auto flex min-h-[480px] max-w-6xl items-center px-4 py-12 md:min-h-[560px] md:py-16 " +
+            "absolute inset-0 z-[3] mx-auto flex max-w-6xl items-center px-4 py-12 md:py-16 " +
             positionClass(position)
           }
         >
           <div
             key={slide.id + "-" + index}
             className={
-              "hero-card max-w-sm shrink-0 rounded-3xl border border-white/25 bg-white/95 p-5 shadow-2xl backdrop-blur-md md:max-w-md md:p-7 " +
+              "hero-card max-h-[calc(100%-2rem)] max-w-sm shrink-0 overflow-y-auto rounded-3xl border border-white/25 bg-white/95 p-5 shadow-2xl backdrop-blur-md md:max-w-md md:p-7 " +
               contentEnterClass(direction)
             }
           >
