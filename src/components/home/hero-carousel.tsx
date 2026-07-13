@@ -167,45 +167,46 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
       {showBox && (
         <div
           className={
-            "absolute inset-0 z-[3] mx-auto flex max-w-6xl items-center px-4 py-12 md:py-16 " +
+            "absolute inset-0 z-[3] mx-auto flex max-w-6xl items-center px-4 py-10 md:py-12 " +
             positionClass(position)
           }
         >
           <div
             key={slide.id + "-" + index}
             className={
-              "hero-card max-h-[calc(100%-2rem)] max-w-sm shrink-0 overflow-y-auto rounded-3xl border border-white/25 bg-white/95 p-5 shadow-2xl backdrop-blur-md md:max-w-md md:p-7 " +
+              "hero-card " +
+              (content.imageUrl || content.kind === "typology" ? "hero-card-with-media " : "") +
               contentEnterClass(direction)
             }
           >
             {content.imageUrl && (
-              <div className="mb-5 overflow-hidden rounded-2xl bg-ink-100 shadow-lg">
+              <div className="hero-card-media">
                 <img
                   src={content.imageUrl}
                   alt={content.title}
-                  className="aspect-square w-full object-cover"
+                  className="hero-card-product-image"
                 />
               </div>
             )}
             {!content.imageUrl && content.kind === "typology" && (
-              <div className="mb-5 flex aspect-square items-center justify-center rounded-2xl bg-gradient-to-br from-brand-50 to-accent-50 shadow-lg">
-                <Tags className="h-16 w-16 text-brand-400" />
+              <div className="hero-card-media hero-card-media-icon">
+                <Tags className="h-12 w-12 text-brand-400 md:h-14 md:w-14" />
               </div>
             )}
-            {content.title && (
-              <h1 className="font-display text-2xl font-bold text-ink-900 md:text-3xl">
-                {content.title}
-              </h1>
-            )}
-            {content.subtitle && (
-              <p className="mt-3 text-sm text-ink-700 line-clamp-3 md:text-base">{content.subtitle}</p>
-            )}
-            {content.priceLabel && (
-              <p className="mt-3 text-xl font-semibold text-brand-600">{content.priceLabel}</p>
-            )}
-            <Link href={content.href} className="btn-primary mt-5 inline-block px-7 py-2.5 text-sm md:text-base">
-              {ctaLabel}
-            </Link>
+            <div className="hero-card-body">
+              {content.title && (
+                <h1 className="hero-card-title">{content.title}</h1>
+              )}
+              {content.subtitle && (
+                <p className="hero-card-subtitle">{content.subtitle}</p>
+              )}
+              {content.priceLabel && (
+                <p className="hero-card-price">{content.priceLabel}</p>
+              )}
+              <Link href={content.href} className="btn-primary hero-card-cta">
+                {ctaLabel}
+              </Link>
+            </div>
           </div>
         </div>
       )}
