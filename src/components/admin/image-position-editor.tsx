@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Move, ZoomIn } from "lucide-react";
+import { Move, RotateCcw, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   clampPan,
@@ -59,6 +59,7 @@ export function ImagePositionEditor({
   const frame = getFrameSize(aspectRatio);
   const viewportRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null);
+  const originalTransformRef = useRef<ImageTransform | null>(null);
 
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [transform, setTransform] = useState<ImageTransform>({ panX: 0, panY: 0, scale: 1 });
@@ -95,9 +96,11 @@ export function ImagePositionEditor({
       .then((img) => {
         if (!active) return;
         setImage(img);
+        const original = getInitialTransform(frame.width, frame.height, img.width, img.height);
+        originalTransformRef.current = original;
         const initial = initialObjectPosition
           ? transformFromObjectPosition(frame.width, frame.height, img.width, img.height, initialObjectPosition)
-          : getInitialTransform(frame.width, frame.height, img.width, img.height);
+          : original;
         setTransform(initial);
         setLoading(false);
       })
@@ -207,6 +210,15 @@ export function ImagePositionEditor({
       value
     );
     setTransform(next);
+  }
+
+  function handleResetOriginal() {
+    if (!originalTransformRef.current) return;
+    setTransform({
+      panX: originalTransformRef.current.panX,
+      panY: originalTransformRef.current.panY,
+      scale: originalTransformRef.current.scale,
+    });
   }
 
   async function handlePrimaryConfirm() {
@@ -471,10 +483,25 @@ export function ImagePositionEditor({
         )}
 
         <div className="mt-5">
-          <label className="mb-2 flex items-center gap-2 text-sm text-ink-200">
-            <ZoomIn className="h-4 w-4" />
-            Zoom
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label className="flex items-center gap-2 text-sm text-ink-200">
+              <ZoomIn className="h-4 w-4" />
+              Zoom
+            </label>
+            {image && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleResetOriginal}
+                disabled={saving}
+                className="h-9 shrink-0 gap-1.5 rounded-full px-3 text-ink-200 hover:bg-ink-800 hover:text-white"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Ripristina originale
+              </Button>
+            )}
+          </div>
           <input
             type="range"
             min={1}
