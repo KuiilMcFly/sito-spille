@@ -1,4 +1,4 @@
-export type ImageFrameRatio = "square" | "4/3" | "16/9" | "21/9";
+export type ImageFrameRatio = "square" | "4/3" | "16/9" | "21/9" | "hero";
 
 export type ImageTransform = {
   panX: number;
@@ -10,13 +10,44 @@ export function getFrameSize(ratio: ImageFrameRatio): { width: number; height: n
   if (ratio === "square") return { width: 1200, height: 1200 };
   if (ratio === "4/3") return { width: 1200, height: 900 };
   if (ratio === "16/9") return { width: 1600, height: 900 };
+  if (ratio === "hero") return { width: 1920, height: 620 };
   return { width: 1680, height: 720 };
+}
+
+export function getMobileHeroFrameSize(): { width: number; height: number } {
+  return { width: 390, height: 540 };
+}
+
+export function parseObjectPosition(value: string | null | undefined): { x: number; y: number } {
+  if (!value) return { x: 50, y: 50 };
+  const parts = value.trim().split(/\s+/);
+  const x = parseFloat(parts[0]) || 50;
+  const y = parseFloat(parts[1] ?? parts[0]) || 50;
+  return { x, y };
+}
+
+export function transformFromObjectPosition(
+  frameW: number,
+  frameH: number,
+  imgW: number,
+  imgH: number,
+  objectPosition: string
+): ImageTransform {
+  const focus = parseObjectPosition(objectPosition);
+  const coverScale = Math.max(frameW / imgW, frameH / imgH);
+  const drawW = imgW * coverScale;
+  const drawH = imgH * coverScale;
+  const panX = frameW / 2 - (focus.x / 100) * drawW;
+  const panY = frameH / 2 - (focus.y / 100) * drawH;
+  const clamped = clampPan(panX, panY, frameW, frameH, imgW, imgH, 1);
+  return { panX: clamped.panX, panY: clamped.panY, scale: 1 };
 }
 
 export function getPreviewAspectClass(ratio: ImageFrameRatio): string {
   if (ratio === "square") return "aspect-square";
   if (ratio === "4/3") return "aspect-[4/3]";
   if (ratio === "16/9") return "aspect-video";
+  if (ratio === "hero") return "aspect-hero-editor";
   return "aspect-[21/9]";
 }
 

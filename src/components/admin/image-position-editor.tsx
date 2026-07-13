@@ -11,8 +11,10 @@ import {
   isAnimatedImageType,
   loadImageElement,
   objectPositionFromTransform,
+  parseObjectPosition,
   renderFocusedImageFile,
   shouldKeepOriginalUpload,
+  transformFromObjectPosition,
   type ImageFrameRatio,
   type ImageTransform,
 } from "@/lib/images/image-focus";
@@ -35,30 +37,12 @@ type ImagePositionEditorProps = {
   onPositionOnly?: (meta: ImageUploadMeta) => void;
 };
 
-function parseObjectPosition(value: string | null | undefined): { x: number; y: number } {
-  if (!value) return { x: 50, y: 50 };
-  const parts = value.split(" ");
-  const x = parseFloat(parts[0]) || 50;
-  const y = parseFloat(parts[1]) || 50;
-  return { x, y };
-}
-
-function transformFromObjectPosition(
-  frameW: number,
-  frameH: number,
-  imgW: number,
-  imgH: number,
-  objectPosition: string
-): ImageTransform {
-  const focus = parseObjectPosition(objectPosition);
-  const coverScale = Math.max(frameW / imgW, frameH / imgH);
-  const drawW = imgW * coverScale;
-  const drawH = imgH * coverScale;
-  const panX = frameW / 2 - (focus.x / 100) * drawW;
-  const panY = frameH / 2 - (focus.y / 100) * drawH;
-  const clamped = clampPan(panX, panY, frameW, frameH, imgW, imgH, 1);
-  return { panX: clamped.panX, panY: clamped.panY, scale: 1 };
-}
+const HERO_FOCUS_PRESETS = [
+  { label: "Teste in alto", value: "50% 18%" },
+  { label: "Parte alta", value: "50% 30%" },
+  { label: "Centro", value: "50% 50%" },
+  { label: "Parte bassa", value: "50% 70%" },
+];
 
 export function ImagePositionEditor({
   source,
@@ -201,6 +185,30 @@ export function ImagePositionEditor({
     });
   }
 
+  function applyFocusPoint(x: number, y: number) {
+    if (!image) return;
+    const next = transformFromObjectPosition(
+      frame.width,
+      frame.height,
+      image.width,
+      image.height,
+      Math.round(x) + "% " + Math.round(y) + "%"
+    );
+    setTransform(next);
+  }
+
+  function applyFocusPreset(value: string) {
+    if (!image) return;
+    const next = transformFromObjectPosition(
+      frame.width,
+      frame.height,
+      image.width,
+      image.height,
+      value
+    );
+    setTransform(next);
+  }
+
   async function handlePrimaryConfirm() {
     if (useOriginalOnConfirm) {
       await handleConfirmOriginal();
@@ -292,13 +300,29 @@ export function ImagePositionEditor({
   const drawW = image ? image.width * coverScale : 0;
   const drawH = image ? image.height * coverScale : 0;
   const aspectClass = getPreviewAspectClass(aspectRatio);
+  const isHeroMode = aspectRatio === "hero";
+  const focusPoint = image
+    ? parseObjectPosition(
+        objectPositionFromTransform(
+          transform,
+          frame.width,
+          frame.height,
+          image.width,
+          image.height
+        )
+      )
+    : { x: 50, y: 50 };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-ink-900 p-5 shadow-2xl">
-        <h3 className="text-lg font-semibold text-white">Posiziona immagine</h3>
+      <div className="max-h-[95vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-ink-900 p-5 shadow-2xl">
+        <h3 className="text-lg font-semibold text-white">
+          {isHeroMode ? "Posiziona background hero" : "Posiziona immagine"}
+        </h3>
         <p className="mt-1 text-sm text-ink-400">
-          Trascina per spostare e usa lo zoom. L&apos;anteprima mostra il risultato finale.
+          {isHeroMode
+            ? "Regola il punto focale per evitare tagli indesiderati. Valori verticali bassi mostrano la parte alta della foto."
+            : "Trascina per spostare e usa lo zoom. L anteprima mostra il risultato finale."}
         </p>
 
         <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -352,7 +376,9 @@ export function ImagePositionEditor({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-400">Anteprima</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-400">
+              {isHeroMode ? "Anteprima desktop hero" : "Anteprima"}
+            </p>
             <div
               className={
                 "overflow-hidden rounded-xl border border-brand-500/40 bg-white " + aspectClass
@@ -375,8 +401,74 @@ export function ImagePositionEditor({
                 </div>
               )}
             </div>
+            {isHeroMode && image && (
+              <div className="mt-3">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-400">
+                  Anteprima mobile hero
+                </p>
+                <div className="aspect-hero-mobile overflow-hidden rounded-xl border border-brand-500/40 bg-white">
+                  <img
+                    src={image.src}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    style={{ objectPosition: livePreviewPosition }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {isHeroMode && image && (
+          <div className="mt-5 space-y-4 rounded-xl border border-ink-700 bg-ink-950/60 p-4">
+            <p className="text-sm font-medium text-ink-200">Regolazione precisa</p>
+            <div className="flex flex-wrap gap-2">
+              {HERO_FOCUS_PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => applyFocusPreset(preset.value)}
+                  className="rounded-full border border-ink-600 px-3 py-1.5 text-xs text-ink-200 transition hover:border-brand-400 hover:text-white"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <div>
+              <label className="mb-2 flex justify-between text-sm text-ink-200">
+                <span>Orizzontale</span>
+                <span className="text-ink-400">{Math.round(focusPoint.x)}%</span>
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={focusPoint.x}
+                onChange={(e) => applyFocusPoint(parseFloat(e.target.value), focusPoint.y)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="mb-2 flex justify-between text-sm text-ink-200">
+                <span>Verticale (0 = alto, 100 = basso)</span>
+                <span className="text-ink-400">{Math.round(focusPoint.y)}%</span>
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={focusPoint.y}
+                onChange={(e) => applyFocusPoint(focusPoint.x, parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <p className="text-xs text-ink-500">
+              Posizione salvata: {livePreviewPosition}. Per personaggi, prova 15-30% sul verticale.
+            </p>
+          </div>
+        )}
 
         <div className="mt-5">
           <label className="mb-2 flex items-center gap-2 text-sm text-ink-200">
@@ -386,7 +478,7 @@ export function ImagePositionEditor({
           <input
             type="range"
             min={1}
-            max={3}
+            max={isHeroMode ? 4 : 3}
             step={0.05}
             value={transform.scale}
             onChange={(e) => handleScaleChange(parseFloat(e.target.value))}
@@ -406,7 +498,7 @@ export function ImagePositionEditor({
           </Button>
           {isExistingSource && onPositionOnly && (
             <Button type="button" variant="secondary" onClick={handlePositionOnly} disabled={saving || !image}>
-              {saving ? "Salvataggio..." : "Salva solo posizione"}
+              {saving ? "Salvataggio..." : "Applica posizione"}
             </Button>
           )}
           {!useOriginalOnConfirm && keepOriginalUpload && (

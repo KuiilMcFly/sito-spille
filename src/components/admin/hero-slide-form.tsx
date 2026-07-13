@@ -197,11 +197,14 @@ export function HeroSlideForm({ slide, products, groups, typologies }: HeroSlide
       <ImageUploadField
         label="Background hero"
         required={!slide}
-        aspectRatio="16/9"
+        aspectRatio="hero"
         allowKeepOriginal
-        objectPosition={slide?.background_position}
+        objectPosition={backgroundPosition}
         currentUrl={slide?.background_path ? getSiteAssetUrl(slide.background_path) : null}
         onChange={handleBackgroundChange}
+        onPositionOnly={(meta) => {
+          if (meta.objectPosition) setBackgroundPosition(meta.objectPosition);
+        }}
       />
       <p className="text-xs text-ink-500">
         Supportati JPEG, PNG, GIF, WebP animato e altri formati immagine fino a {formatSiteAssetMaxSize()}.

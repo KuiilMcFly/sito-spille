@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Upload, X, Move } from "lucide-react";
 import { SITE_ASSET_IMAGE_ACCEPT, resolveImageContentType } from "@/lib/images/content-type";
 import {
@@ -42,6 +42,10 @@ export function ImageUploadField({
   const [editorName, setEditorName] = useState("");
   const [editorType, setEditorType] = useState("image/jpeg");
   const [displayPosition, setDisplayPosition] = useState(objectPosition || "50% 50%");
+
+  useEffect(() => {
+    if (objectPosition) setDisplayPosition(objectPosition);
+  }, [objectPosition]);
 
   function openEditor(source: File | string, name: string, type: string) {
     setEditorSource(source);

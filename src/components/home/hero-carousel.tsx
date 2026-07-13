@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Tags } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers, Tags } from "lucide-react";
 import { getSiteAssetUrl } from "@/lib/utils";
 import { parseHeroProductPosition } from "@/lib/hero/constants";
 import type { HeroProductPosition } from "@/lib/hero/constants";
@@ -173,11 +173,7 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
         >
           <div
             key={slide.id + "-" + index}
-            className={
-              "hero-card " +
-              (content.imageUrl || content.kind === "typology" ? "hero-card-with-media " : "") +
-              contentEnterClass(direction)
-            }
+            className={"hero-card hero-card-with-media " + contentEnterClass(direction)}
           >
             {content.imageUrl && (
               <div className="hero-card-media">
@@ -190,8 +186,16 @@ export function HeroCarousel({ slides, fallbackTitle, fallbackSubtitle }: HeroCa
             )}
             {!content.imageUrl && content.kind === "typology" && (
               <div className="hero-card-media hero-card-media-icon">
-                <Tags className="h-12 w-12 text-brand-400 md:h-14 md:w-14" />
+                <Tags className="hero-card-media-icon-svg" aria-hidden="true" />
               </div>
+            )}
+            {!content.imageUrl && content.kind === "group" && (
+              <div className="hero-card-media hero-card-media-icon">
+                <Layers className="hero-card-media-icon-svg" aria-hidden="true" />
+              </div>
+            )}
+            {!content.imageUrl && content.kind !== "typology" && content.kind !== "group" && (
+              <div className="hero-card-media hero-card-media-placeholder" aria-hidden="true" />
             )}
             <div className="hero-card-body">
               {content.title && (
