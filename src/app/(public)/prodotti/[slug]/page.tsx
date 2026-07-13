@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { createClientIfConfigured } from "@/lib/supabase/server";
-import { areOrdersOpen } from "@/lib/orders/orders-open";
+import { getPublicReadClient } from "@/lib/supabase/public-read";
 import { getServerUser } from "@/lib/supabase/server";
+import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { getStorageUrl } from "@/lib/utils";
 import { buildPageMetadata } from "@/lib/metadata/page-metadata";
 import { ProductDetailClient } from "@/components/catalog/product-detail-client";
@@ -14,7 +14,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
 
   if (!supabase) {
     return { title: "Prodotto" };
@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
 
   if (!supabase) {
     notFound();

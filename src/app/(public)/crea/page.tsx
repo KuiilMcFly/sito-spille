@@ -1,4 +1,5 @@
-import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
+import { getPublicReadClient } from "@/lib/supabase/public-read";
+import { getServerUser } from "@/lib/supabase/server";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { getThemeColors } from "@/lib/theme/get-theme";
 import { PinCustomizer } from "@/components/customizer/pin-customizer";
@@ -15,7 +16,7 @@ type Props = {
 
 export default async function CreatePage({ searchParams }: Props) {
   const { draft } = await searchParams;
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
   const user = await getServerUser();
 
   const [sizesResult, ordersOpen, theme] = await Promise.all([

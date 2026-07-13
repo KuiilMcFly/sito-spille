@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { createClientIfConfigured } from "@/lib/supabase/server";
+import { getPublicReadClient } from "@/lib/supabase/public-read";
 import { ProductGrid } from "@/components/catalog/product-grid";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
 import { loadFilterOptions } from "@/lib/catalog/filter-entities";
@@ -17,7 +17,7 @@ export default async function ProductsPage({ searchParams }: Props) {
   let groups: Awaited<ReturnType<typeof loadFilterOptions>>["groups"] = [];
   let typologies: Awaited<ReturnType<typeof loadFilterOptions>>["typologies"] = [];
 
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
 
   if (supabase) {
     try {

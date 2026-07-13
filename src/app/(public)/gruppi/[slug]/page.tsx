@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClientIfConfigured } from "@/lib/supabase/server";
+import { getPublicReadClient } from "@/lib/supabase/public-read";
 import { ProductGrid } from "@/components/catalog/product-grid";
 import { getSiteAssetUrl } from "@/lib/utils";
 import type { ProductWithImages } from "@/types/database";
@@ -9,7 +9,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
   if (!supabase) return { title: "Gruppo" };
 
   const { data: group } = await supabase
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function GroupDetailPage({ params }: Props) {
   const { slug } = await params;
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
   if (!supabase) notFound();
 
   const { data: group } = await supabase

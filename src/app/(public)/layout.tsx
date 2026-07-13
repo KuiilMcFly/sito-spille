@@ -2,6 +2,8 @@ import { CartProvider } from "@/lib/cart/cart-context";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
+export const dynamic = "force-dynamic";
+
 export default function PublicLayout({
   children,
 }: {

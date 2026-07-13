@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClientIfConfigured } from "@/lib/supabase/server";
+import { getPublicReadClient } from "@/lib/supabase/public-read";
 import { getPublicSettings } from "@/lib/settings";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { FeaturedGrid } from "@/components/home/featured-grid";
@@ -23,7 +23,7 @@ export default async function HomePage() {
   let groupsPreview: Awaited<ReturnType<typeof loadHomeGroupsPreview>> = [];
   let typologiesPreview: Awaited<ReturnType<typeof loadHomeTypologiesPreview>> = [];
 
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
   if (supabase) {
     try {
       const [featuredRes, slidesRes, groupsRes, typologiesRes] = await Promise.all([

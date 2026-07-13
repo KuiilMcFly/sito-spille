@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClientIfConfigured } from "@/lib/supabase/server";
+import { getPublicReadClient } from "@/lib/supabase/public-read";
 import { SizeComparison } from "@/components/catalog/size-comparison";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import type { Tables } from "@/types/database";
@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function SizesPage() {
-  const supabase = await createClientIfConfigured();
+  const supabase = await getPublicReadClient();
   let sizes: Tables<"pin_sizes">[] = [];
 
   if (supabase) {
