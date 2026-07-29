@@ -2,21 +2,28 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatPrice } from "@/lib/utils";
-import { getCustomPrice } from "@/lib/orders/pricing-client";
+import { Textarea } from "@/components/ui/textarea";
 import { prepareImageFromFile, waitForCanvasFrame } from "@/lib/images/prepare-upload-image";
+import { drawPinImageInCircle } from "@/lib/customizer/draw-pin-image";
 import { FINISH_EFFECTS, getFinishOverlayStyle } from "@/lib/customizer/finish-effects";
-import { useCart } from "@/lib/cart/cart-context";
 import { ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-messages";
+import {
+  CheckoutAddressSection,
+  EMPTY_SHIPPING_ADDRESS,
+  validateShippingAddress,
+} from "@/components/cart/checkout-address-section";
+import type { ShippingAddressPayload } from "@/lib/addresses/types";
 import type { CustomizationData, FinishEffect, Tables } from "@/types/database";
-import { Loader2, RotateCw, ShoppingCart, Upload, ZoomIn, ZoomOut } from "lucide-react";
+import { Loader2, PackageCheck, RotateCw, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   CustomizerDraftToolbar,
   readFileAsDataUrl,
 } from "@/components/customizer/customizer-draft-toolbar";
+import { ensureOrdersOpen } from "@/lib/orders/orders-open-client";
 
 type PinCustomizerProps = {
   sizes: Tables<"pin_sizes">[];
@@ -25,6 +32,10 @@ type PinCustomizerProps = {
   previewStrokeColor?: string;
   loggedIn?: boolean;
   initialDraftId?: string | null;
+  loggedInEmail?: string | null;
+  loggedInPhone?: string | null;
+  loggedInName?: string | null;
+  savedAddresses?: Tables<"customer_addresses">[];
 };
 
 const DEFAULT_CUSTOM: CustomizationData = {
@@ -50,8 +61,12 @@ export function PinCustomizer({
   previewStrokeColor = "#f72585",
   loggedIn = false,
   initialDraftId = null,
+  loggedInEmail = null,
+  loggedInPhone = null,
+  loggedInName = null,
+  savedAddresses = [],
 }: PinCustomizerProps) {
-  const { addCustomItem } = useCart();
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -62,14 +77,37 @@ export function PinCustomizer({
   const [customization, setCustomization] = useState<CustomizationData>(DEFAULT_CUSTOM);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
-  const [adding, setAdding] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [draftLoading, setDraftLoading] = useState(Boolean(initialDraftId));
+  const [email, setEmail] = useState(loggedInEmail || "");
+  const [phone, setPhone] = useState(loggedInPhone || "");
+  const [name, setName] = useState(loggedInName || "");
+  const [notes, setNotes] = useState("");
+  const defaultAddress = savedAddresses.find((a) => a.is_default) || savedAddresses[0];
+  const [selectedAddressId, setSelectedAddressId] = useState<string | "new">(
+    defaultAddress ? defaultAddress.id : "new"
+  );
+  const [saveAddress, setSaveAddress] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddressPayload>(EMPTY_SHIPPING_ADDRESS);
 
   const selectedSize = sizes.find((s) => s.id === selectedSizeId);
-  const unitPrice = selectedSize ? getCustomPrice(selectedSize) : 0;
-  const subtotal = unitPrice * quantity;
   const overlayStyle = getFinishOverlayStyle(customization.finishEffect);
+
+  useEffect(() => {
+    if (!defaultAddress) return;
+    setShippingAddress({
+      label: defaultAddress.label,
+      fullName: defaultAddress.full_name || undefined,
+      phone: defaultAddress.phone || undefined,
+      streetLine1: defaultAddress.street_line1,
+      streetLine2: defaultAddress.street_line2 || undefined,
+      city: defaultAddress.city,
+      province: defaultAddress.province,
+      postalCode: defaultAddress.postal_code,
+      country: defaultAddress.country,
+    });
+  }, [defaultAddress?.id]);
 
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -96,9 +134,7 @@ export function PinCustomizer({
       ctx.save();
       ctx.translate(size / 2 + customization.offsetX, size / 2 + customization.offsetY);
       ctx.rotate((customization.rotation * Math.PI) / 180);
-      ctx.scale(customization.scale, customization.scale);
-      const drawSize = size * 0.9;
-      ctx.drawImage(img, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+      drawPinImageInCircle(ctx, img, customization, size);
       ctx.restore();
     }
 
@@ -226,7 +262,7 @@ export function PinCustomizer({
     }
   }
 
-  async function handleAddToCart() {
+  async function handleSubmitOrder() {
     if (!ordersOpen) {
       toast.error("Ordini temporaneamente chiusi");
       return;
@@ -239,9 +275,21 @@ export function PinCustomizer({
       toast.error("Seleziona una taglia.");
       return;
     }
+    if (!email.trim() || !phone.trim()) {
+      toast.error("Email e telefono obbligatori");
+      return;
+    }
+    if (!validateShippingAddress(shippingAddress)) {
+      toast.error("Compila l'indirizzo di spedizione");
+      return;
+    }
 
-    setAdding(true);
+    setSubmitting(true);
     try {
+      if (!(await ensureOrdersOpen())) {
+        throw new Error(ORDERS_CLOSED_MESSAGE);
+      }
+
       drawCanvas();
       await waitForCanvasFrame();
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -251,27 +299,33 @@ export function PinCustomizer({
 
       const designBase64 = exportCanvasImage(canvas);
 
-      const saved = addCustomItem({
-        type: "custom",
-        pinSizeId: selectedSizeId,
-        pinSizeName: selectedSize.name,
-        quantity,
-        unitPrice,
-        designBase64,
-        customization,
-        label: "Spilla personalizzata " + selectedSize.name,
+      const response = await fetch("/api/orders/custom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pinSizeId: selectedSizeId,
+          quantity,
+          email: email.trim(),
+          phone: phone.trim(),
+          name: name.trim() || null,
+          notes: notes.trim() || null,
+          customization,
+          designBase64,
+          shippingAddress,
+          shippingAddressId: selectedAddressId !== "new" ? selectedAddressId : null,
+          saveAddress: loggedIn && selectedAddressId === "new" ? saveAddress : false,
+        }),
       });
 
-      if (!saved) {
-        throw new Error("Impossibile salvare nel carrello. Prova con un'immagine piu leggera.");
-      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Errore invio ordine");
 
-      toast.success("Aggiunta al carrello!");
-      window.location.href = "/carrello";
+      toast.success("Ordine inviato!");
+      router.push("/ordine/" + data.orderNumber);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Errore");
     } finally {
-      setAdding(false);
+      setSubmitting(false);
     }
   }
 
@@ -295,6 +349,9 @@ export function PinCustomizer({
           </div>
           <p className="mt-4 text-sm text-ink-400">
             Anteprima spilla {selectedSize?.name || ""}
+          </p>
+          <p className="mt-1 max-w-xs text-center text-xs text-ink-500">
+            L&apos;immagine mantiene le proporzioni: usa zoom e spostamento per tagliarla nel cerchio.
           </p>
         </div>
 
@@ -323,6 +380,9 @@ export function PinCustomizer({
             <RotateCw className="mr-2 h-4 w-4" />
             Ruota
           </Button>
+          <Button type="button" variant="ghost" disabled={!imageLoaded} onClick={() => setCustomization(DEFAULT_CUSTOM)}>
+            Ripristina posizione
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -334,12 +394,10 @@ export function PinCustomizer({
       </div>
 
       <div className="space-y-6 rounded-3xl border border-brand-100 bg-white p-8">
-        <h2 className="font-display text-2xl font-bold text-ink-900">Configura la spilla</h2>
+        <h2 className="font-display text-2xl font-bold text-ink-900">Configura e invia ordine</h2>
 
         <p className="text-sm text-ink-700">
-          Aggiungi piu spille al carrello prima di pagare.{" "}
-          <Link href="/carrello" className="text-brand-600 underline">Vai al carrello</Link>
-          {" · "}
+          Completa la personalizzazione e invia l&apos;ordine: ti contatteremo per il pagamento.{" "}
           <Link href="/taglie" className="text-brand-600 underline">Confronta taglie</Link>
         </p>
 
@@ -363,7 +421,9 @@ export function PinCustomizer({
                 }
               >
                 <span className="font-semibold">{size.name}</span>
-                <span className="ml-2 text-brand-600">{formatPrice(getCustomPrice(size))}</span>
+                {size.diameter_mm ? (
+                  <span className="ml-2 text-sm text-ink-500">{size.diameter_mm} mm</span>
+                ) : null}
               </button>
             ))}
           </div>
@@ -396,12 +456,22 @@ export function PinCustomizer({
           onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
         />
 
-        <div className="rounded-xl bg-brand-50 p-4">
-          <div className="flex justify-between font-bold text-brand-600">
-            <span>Totale riga</span>
-            <span>{formatPrice(subtotal)}</span>
-          </div>
-        </div>
+        <Input label="Email *" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input label="Telefono *" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <Input label="Nome" value={name} onChange={(e) => setName(e.target.value)} />
+
+        <CheckoutAddressSection
+          loggedIn={loggedIn}
+          initialAddresses={savedAddresses}
+          shippingAddress={shippingAddress}
+          setShippingAddress={setShippingAddress}
+          selectedAddressId={selectedAddressId}
+          setSelectedAddressId={setSelectedAddressId}
+          saveAddress={saveAddress}
+          setSaveAddress={setSaveAddress}
+        />
+
+        <Textarea label="Note" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
         {!ordersOpen && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -417,18 +487,26 @@ export function PinCustomizer({
 
         <Button
           className="w-full"
-          disabled={!ordersOpen || !imageLoaded || adding || sizes.length === 0}
-          onClick={handleAddToCart}
+          disabled={
+            !ordersOpen ||
+            !imageLoaded ||
+            submitting ||
+            sizes.length === 0 ||
+            !email.trim() ||
+            !phone.trim() ||
+            !validateShippingAddress(shippingAddress)
+          }
+          onClick={handleSubmitOrder}
         >
-          {adding ? (
+          {submitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Aggiunta...
+              Invio ordine...
             </>
           ) : (
             <>
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              Aggiungi al carrello
+              <PackageCheck className="mr-2 h-4 w-4" />
+              Invia ordine personalizzato
             </>
           )}
         </Button>

@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 
 export function CartPageClient() {
   const router = useRouter();
-  const { items, removeItem, updateQuantity, subtotal } = useCart();
+  const { items, removeItem, updateQuantity } = useCart();
+  const customItems = items.filter((i) => i.type === "custom");
+  const catalogItems = items.filter((i) => i.type === "catalog");
+  const catalogSubtotal = catalogItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
   if (items.length === 0) {
     return (
@@ -23,6 +26,17 @@ export function CartPageClient() {
 
   return (
     <div className="space-y-6">
+      {customItems.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-semibold">Spille personalizzate</p>
+          <p className="mt-1">
+            Gli ordini con design su misura si inviano dalla pagina{" "}
+            <Link href="/crea" className="text-brand-700 underline">Crea la tua spilla</Link>
+            . Rimuovi le righe personalizzate qui sotto per procedere al checkout del catalogo.
+          </p>
+        </div>
+      )}
+
       {items.map((item) => (
         <div
           key={item.id}
@@ -50,7 +64,9 @@ export function CartPageClient() {
               {item.type === "custom" ? "Personalizzata" : "Catalogo"}
               {item.type === "custom" && " · " + item.pinSizeName}
             </p>
-            <p className="text-sm text-brand-600">{formatPrice(item.unitPrice)} cad.</p>
+            {item.type === "catalog" && (
+              <p className="text-sm text-brand-600">{formatPrice(item.unitPrice)} cad.</p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -70,7 +86,9 @@ export function CartPageClient() {
               +
             </button>
           </div>
-          <p className="font-semibold">{formatPrice(item.unitPrice * item.quantity)}</p>
+          <p className="font-semibold">
+            {item.type === "catalog" ? formatPrice(item.unitPrice * item.quantity) : "—"}
+          </p>
           <button
             type="button"
             onClick={() => removeItem(item.id)}
@@ -81,16 +99,22 @@ export function CartPageClient() {
         </div>
       ))}
 
-      <div className="rounded-2xl border border-brand-100 bg-brand-50 p-6">
-        <div className="flex justify-between text-lg font-bold">
-          <span>Subtotale</span>
-          <span>{formatPrice(subtotal)}</span>
+      {catalogItems.length > 0 && (
+        <div className="rounded-2xl border border-brand-100 bg-brand-50 p-6">
+          <div className="flex justify-between text-lg font-bold">
+            <span>Subtotale catalogo</span>
+            <span>{formatPrice(catalogSubtotal)}</span>
+          </div>
+          <p className="mt-1 text-xs text-ink-500">Spedizione calcolata al checkout</p>
+          <Button
+            className="mt-4 w-full"
+            disabled={customItems.length > 0}
+            onClick={() => router.push("/checkout")}
+          >
+            Procedi al checkout
+          </Button>
         </div>
-        <p className="mt-1 text-xs text-ink-500">Spedizione calcolata al checkout</p>
-        <Button className="mt-4 w-full" onClick={() => router.push("/checkout")}>
-          Procedi al checkout
-        </Button>
-      </div>
+      )}
     </div>
   );
 }

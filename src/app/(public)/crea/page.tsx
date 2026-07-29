@@ -1,5 +1,5 @@
 import { getPublicReadClient } from "@/lib/supabase/public-read";
-import { getServerUser } from "@/lib/supabase/server";
+import { createClientIfConfigured, getServerUser } from "@/lib/supabase/server";
 import { areOrdersOpen } from "@/lib/orders/orders-open";
 import { getThemeColors } from "@/lib/theme/get-theme";
 import { PinCustomizer } from "@/components/customizer/pin-customizer";
@@ -17,6 +17,7 @@ type Props = {
 export default async function CreatePage({ searchParams }: Props) {
   const { draft } = await searchParams;
   const supabase = await getPublicReadClient();
+  const authSupabase = await createClientIfConfigured();
   const user = await getServerUser();
 
   const [sizesResult, ordersOpen, theme] = await Promise.all([
@@ -27,6 +28,28 @@ export default async function CreatePage({ searchParams }: Props) {
     getThemeColors(),
   ]);
 
+  let profile: Tables<"customer_profiles"> | null = null;
+  let savedAddresses: Tables<"customer_addresses">[] = [];
+
+  if (user && authSupabase) {
+    try {
+      const [{ data }, { data: addresses }] = await Promise.all([
+        authSupabase.from("customer_profiles").select("*").eq("id", user.id).single(),
+        authSupabase
+          .from("customer_addresses")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("is_default", { ascending: false })
+          .order("created_at", { ascending: false }),
+      ]);
+      profile = data;
+      savedAddresses = addresses || [];
+    } catch {
+      profile = null;
+      savedAddresses = [];
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <div className="mb-10 text-center">
@@ -34,7 +57,7 @@ export default async function CreatePage({ searchParams }: Props) {
           Crea la tua spilla
         </h1>
         <p className="mt-3 text-ink-700">
-          Carica la tua immagine, personalizza e aggiungi al carrello.
+          Carica la tua immagine, personalizzala nel cerchio e invia l&apos;ordine.
         </p>
       </div>
       <PinCustomizer
@@ -44,6 +67,10 @@ export default async function CreatePage({ searchParams }: Props) {
         previewStrokeColor={theme.brand500}
         loggedIn={Boolean(user)}
         initialDraftId={draft || null}
+        loggedInEmail={user?.email}
+        loggedInPhone={profile?.phone}
+        loggedInName={profile?.full_name}
+        savedAddresses={savedAddresses}
       />
     </div>
   );

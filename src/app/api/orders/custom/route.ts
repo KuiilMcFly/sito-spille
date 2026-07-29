@@ -4,9 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import {
   calculateLineTotal,
   calculateOrderTotal,
-  calculateShippingCost,
   getCustomPrice,
 } from "@/lib/orders/pricing";
+import {
+  maybeSaveCheckoutAddress,
+  resolveCheckoutShippingAddress,
+} from "@/lib/addresses/resolve-checkout-address";
+import type { ShippingAddressPayload } from "@/lib/addresses/types";
 import { v4 as uuidv4 } from "uuid";
 import { areOrdersOpen, ORDERS_CLOSED_MESSAGE } from "@/lib/orders/orders-open";
 
@@ -24,12 +28,16 @@ export async function POST(request: NextRequest) {
     let customerName: string | null = null;
     let notes: string | null = null;
     let customizationRaw = "{}";
-    let shippingMethodId: string | null = null;
     let designBuffer: Buffer | null = null;
     let userId: string | null = null;
+    let shippingAddress: ShippingAddressPayload | null = null;
+    let shippingAddressId: string | null = null;
+    let saveAddress = false;
 
     const supabaseAuth = await createClient();
-    const { data: { user } } = await supabaseAuth.auth.getUser();
+    const {
+      data: { user },
+    } = await supabaseAuth.auth.getUser();
     if (user) {
       userId = user.id;
       if (!email) email = user.email || "";
@@ -44,7 +52,9 @@ export async function POST(request: NextRequest) {
       customerName = body.name || null;
       notes = body.notes || null;
       customizationRaw = body.customization || "{}";
-      shippingMethodId = body.shippingMethodId || null;
+      shippingAddress = body.shippingAddress || null;
+      shippingAddressId = body.shippingAddressId || null;
+      saveAddress = Boolean(body.saveAddress);
 
       if (body.designBase64) {
         const base64 = body.designBase64.replace(/^data:image\/\w+;base64,/, "");
@@ -59,7 +69,6 @@ export async function POST(request: NextRequest) {
       customerName = (formData.get("name") as string) || null;
       notes = (formData.get("notes") as string) || null;
       customizationRaw = (formData.get("customization") as string) || "{}";
-      shippingMethodId = (formData.get("shippingMethodId") as string) || null;
 
       const designEntry = formData.get("design");
       if (designEntry instanceof Blob && designEntry.size > 0) {
@@ -79,9 +88,22 @@ export async function POST(request: NextRequest) {
     if (!phone?.trim()) {
       return NextResponse.json({ error: "Telefono obbligatorio" }, { status: 400 });
     }
-    if (!shippingMethodId) {
-      return NextResponse.json({ error: "Seleziona un metodo di spedizione" }, { status: 400 });
+
+    const shippingAddressJson = await resolveCheckoutShippingAddress({
+      userId,
+      addressId: shippingAddressId,
+      shippingAddress,
+    });
+
+    if (!shippingAddressJson) {
+      return NextResponse.json({ error: "Indirizzo di spedizione obbligatorio" }, { status: 400 });
     }
+
+    await maybeSaveCheckoutAddress({
+      userId,
+      saveAddress,
+      shippingAddress,
+    });
 
     const supabase = createAdminClient();
 
@@ -98,8 +120,8 @@ export async function POST(request: NextRequest) {
 
     const unitPrice = getCustomPrice(pinSize);
     const lineTotal = calculateLineTotal(unitPrice, quantity);
-    const shipping = await calculateShippingCost(lineTotal, shippingMethodId);
-    const totalAmount = calculateOrderTotal(lineTotal, shipping.cost);
+    const shippingCost = 0;
+    const totalAmount = calculateOrderTotal(lineTotal, shippingCost);
 
     const designPath = "custom/" + uuidv4() + ".jpg";
 
@@ -126,17 +148,18 @@ export async function POST(request: NextRequest) {
       .insert({
         order_number: "",
         order_type: "custom",
-        status: "pending_payment",
+        status: "accepted",
         customer_email: email.trim(),
         customer_phone: phone.trim(),
         customer_name: customerName,
         customer_notes: notes,
         subtotal: lineTotal,
-        shipping_cost: shipping.cost,
+        shipping_cost: shippingCost,
         total_amount: totalAmount,
         currency: "EUR",
         user_id: userId,
-        shipping_method_id: shippingMethodId,
+        shipping_method_id: null,
+        shipping_address: shippingAddressJson,
       })
       .select()
       .single();
@@ -159,6 +182,13 @@ export async function POST(request: NextRequest) {
     if (itemError) {
       return NextResponse.json({ error: "Errore riga ordine" }, { status: 500 });
     }
+
+    await supabase.from("order_status_history").insert({
+      order_id: order.id,
+      from_status: null,
+      to_status: "accepted",
+      note: "Ordine personalizzato ricevuto",
+    });
 
     return NextResponse.json({
       orderNumber: order.order_number,

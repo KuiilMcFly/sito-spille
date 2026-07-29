@@ -167,6 +167,19 @@ export function CheckoutClient({
     return <p className="text-ink-600">Il carrello e vuoto.</p>;
   }
 
+  if (items.some((i) => i.type === "custom")) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-950">
+        <p className="font-semibold">Checkout non disponibile per spille personalizzate</p>
+        <p className="mt-2 text-sm">
+          Invia il design da{" "}
+          <a href="/crea" className="text-brand-700 underline">Crea la tua spilla</a>
+          {" "}oppure rimuovi le righe personalizzate dal carrello.
+        </p>
+      </div>
+    );
+  }
+
   async function prepareOrder() {
     if (!ordersOpen) {
       toast.error(ORDERS_CLOSED_MESSAGE);
